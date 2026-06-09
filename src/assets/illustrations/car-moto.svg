@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="240" viewBox="0 0 1200 240">
+  <rect width="1200" height="240" fill="none"/>
+  <g opacity="0.08">
+    <rect x="0" y="0" width="1200" height="240" fill="#000" />
+  </g>
+  <g fill="#111827" opacity="0.06">
+    <path d="M50 160h200v20H50z"/>
+    <path d="M300 150h200v30H300z"/>
+    <path d="M580 140h220v40H580z"/>
+    <path d="M880 150h220v30H880z"/>
+  </g>
+</svg>

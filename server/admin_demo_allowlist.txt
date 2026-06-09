@@ -1,0 +1,3 @@
+# Demo allowlist (one phone per line)
+# Leave empty to disable admin API endpoints.
+

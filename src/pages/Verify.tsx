@@ -1,0 +1,198 @@
+import React, { useState } from 'react';
+
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
+import { useLanguage } from '../i18n';
+import { getApiBase } from '../lib/api';
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
+type PlanKey = string;
+
+const PLAN_REDIRECT_START = 0;
+
+const FREE_TRIAL_HASH = 'quiz';
+
+export function Verify() {
+  const q = useQuery();
+  const navigate = useNavigate();
+  const { language } = useLanguage();
+
+  const packageKey = (q.get('package') || 'STARTER') as PlanKey;
+  const paymentSessionId = q.get('paymentSession');
+  const apiBase = getApiBase();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const title = language === 'rw' ? 'Kwishyura' : 'Payment Verification';
+  const subtitle =
+    language === 'rw'
+      ? 'Tegereze akanya gato ko kwishyura kwanyu kwemezwa.'
+      : 'Please wait a moment while your payment is being verified.';
+
+  React.useEffect(() => {
+    if (!paymentSessionId || isSuccess) return;
+
+    let intervalId: any;
+    
+    const checkStatus = async () => {
+      try {
+        const token = localStorage.getItem('kora-jwt');
+        if (!token) return;
+
+        const res = await fetch(`${apiBase}/api/internal/active-package?plan=${encodeURIComponent(packageKey)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.active) {
+            setIsSuccess(true);
+            if (intervalId) clearInterval(intervalId);
+          }
+        }
+      } catch (e) {
+        // ignore polling errors
+      }
+    };
+
+    intervalId = setInterval(checkStatus, 3000);
+    checkStatus();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [paymentSessionId, packageKey, apiBase, isSuccess]);
+
+  React.useEffect(() => {
+    if (isSuccess && !loading) {
+      // Auto-continue to exams after a small delay to show the success state
+      const timer = setTimeout(() => {
+        handleContinue();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess]);
+
+  async function handleContinue() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('kora-jwt');
+      if (!token) {
+        setError(language === 'rw' ? 'Musanze wiyandikishe mbere.' : 'Please register/verify first.');
+        return;
+      }
+
+      const res = await fetch(`${apiBase}/api/internal/start-exam`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan: packageKey })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Cannot start exam');
+
+      const sessionId = data?.sessionId;
+      if (!sessionId) throw new Error('Missing sessionId');
+
+      navigate(`/exams?plan=${encodeURIComponent(packageKey)}&start=1&sessionId=${encodeURIComponent(sessionId)}`);
+    } catch (e: any) {
+      setError(e?.message || 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Demo: simulate success by calling the webhook (ONLY FOR DEMO)
+  async function simulateSuccess() {
+    try {
+      await fetch(`${apiBase}/webhooks/mtn`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payment_reference: paymentSessionId,
+          status: 'success'
+        })
+      });
+      // Polling will pick it up
+    } catch (e) {
+      setError('Simulation failed');
+    }
+  }
+
+  return (
+    <>
+      <PageHeader title={title} subtitle={subtitle} />
+      <section className="bg-background py-16">
+        <div className="max-w-xl mx-auto px-6">
+          <div className="rounded-[2rem] border border-border bg-background p-8 text-center shadow-xl shadow-foreground/5">
+            {isSuccess ? (
+              <div className="animate-in fade-in zoom-in duration-500">
+                 <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+                   <ShieldCheck size={40} />
+                 </div>
+                <h2 className="text-2xl font-heading font-extrabold text-foreground mb-2">
+                  {language === 'rw' ? 'Kwishyura kwagenze neza!' : 'Payment Successful!'}
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                  {language === 'rw' 
+                    ? 'Noneho ushobora gutangira gukora ibizamini byawe.' 
+                    : 'Your package is now active. You can start your practice exams now.'}
+                </p>
+                <button
+                  onClick={handleContinue}
+                  disabled={loading}
+                  className="w-full bg-primary text-primary-foreground rounded-full py-4 text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
+                >
+                  {loading ? '...' : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam')}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-8 flex justify-center">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                </div>
+                <h2 className="text-xl font-heading font-bold text-foreground mb-4">
+                  {language === 'rw' ? 'Turacyategereje...' : 'Waiting for confirmation...'}
+                </h2>
+                <p className="text-sm text-muted-foreground mb-8">
+                  {language === 'rw'
+                    ? 'Emeza kwishyura kuri telefone yawe. Turahita tubona ko bishyuwe.'
+                    : 'Please confirm the payment on your phone. We will automatically detect when it is complete.'}
+                </p>
+                
+                {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={simulateSuccess}
+                    className="text-xs text-primary font-medium hover:underline"
+                  >
+                    [Demo] Simulate Success
+                  </button>
+                  <button
+                    onClick={() => navigate('/packages')}
+                    className="text-xs text-muted-foreground hover:underline"
+                  >
+                    Cancel and go back
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+

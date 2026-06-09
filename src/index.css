@@ -1,0 +1,234 @@
+/* --- MANAGED FONT IMPORTS START (do not edit manually) --- */
+/* INTERNAL USE NAME: Heading */
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* INTERNAL USE NAME: Mono */
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* --- MANAGED FONT IMPORTS END --- */
+
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+@custom-variant dark (&:is(.dark *));
+:root {
+  /* Pure white */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  /* Emerald green: #10B981 */
+  --primary: oklch(0.69 0.17 162);
+  --primary-foreground: oklch(1 0 0);
+  /* Soft mint for backgrounds */
+  --secondary: oklch(0.96 0.02 162);
+  --secondary-foreground: oklch(0.69 0.17 162);
+  /* Light gray section bg */
+  --muted: oklch(0.97 0.005 240);
+  --muted-foreground: oklch(0.5 0 0);
+  /* Orange accent: #F97316 */
+  --accent: oklch(0.72 0.18 50);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0.005 240);
+  --input: oklch(0.92 0.005 240);
+  --ring: oklch(0.69 0.17 162);
+  --radius: 0.75rem;
+}
+:root.dark {
+  /* Near-black background */
+  --background: oklch(0.13 0.005 240);
+  --foreground: oklch(0.98 0 0);
+  /* Slightly elevated cards */
+  --card: oklch(0.18 0.008 240);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.18 0.008 240);
+  --popover-foreground: oklch(0.98 0 0);
+  /* Keep emerald */
+  --primary: oklch(0.72 0.18 162);
+  --primary-foreground: oklch(0.1 0 0);
+  /* Deep mint secondary */
+  --secondary: oklch(0.25 0.05 162);
+  --secondary-foreground: oklch(0.85 0.12 162);
+  /* Dark muted */
+  --muted: oklch(0.2 0.008 240);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.72 0.18 50);
+  --accent-foreground: oklch(0.1 0 0);
+  --border: oklch(0.26 0.01 240);
+  --input: oklch(0.26 0.01 240);
+  --ring: oklch(0.72 0.18 162);
+}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    @apply border-border outline-ring;
+  }
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+  }
+  a, button {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 20%, transparent);
+    color: var(--primary);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+@keyframes proGradientFlow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes softRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lineTravel {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@layer components {
+  .hero-pro-bg {
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in oklch, var(--secondary) 62%, white) 0%,
+        var(--background) 32%,
+        color-mix(in oklch, var(--accent) 13%, var(--background)) 64%,
+        color-mix(in oklch, #38bdf8 12%, var(--background)) 100%
+      );
+    background-size: 180% 180%;
+    animation: proGradientFlow 18s ease-in-out infinite;
+  }
+
+  .dark .hero-pro-bg {
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in oklch, var(--secondary) 28%, var(--background)) 0%,
+        var(--background) 34%,
+        color-mix(in oklch, var(--accent) 10%, var(--background)) 68%,
+        color-mix(in oklch, #0ea5e9 14%, var(--background)) 100%
+      );
+    background-size: 180% 180%;
+  }
+
+  .professional-section {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .professional-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        115deg,
+        transparent 0%,
+        color-mix(in oklch, var(--primary) 7%, transparent) 36%,
+        transparent 72%
+      );
+    opacity: 0.72;
+  }
+
+  .professional-card {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 360ms ease,
+      background-color 360ms ease;
+  }
+
+  .professional-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        115deg,
+        transparent 18%,
+        color-mix(in oklch, white 28%, transparent) 46%,
+        transparent 72%
+      );
+    transform: translateX(-120%);
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .professional-card:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in oklch, var(--primary) 34%, var(--border));
+    box-shadow: 0 22px 55px color-mix(in oklch, var(--foreground) 12%, transparent);
+  }
+
+  .professional-card:hover::after {
+    transform: translateX(120%);
+  }
+
+  .reveal-in {
+    animation: softRise 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animated-topline {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .animated-topline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+    transform: translateX(-100%);
+    animation: lineTravel 5.5s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
