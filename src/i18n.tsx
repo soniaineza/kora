@@ -124,7 +124,7 @@ const translations = {
     quiz: {
       badge: 'SAMPLE QUIZ - FREE',
       title: 'Try a real exam question.',
-      subtitle: '5 questions. No login required.',
+      subtitle: '5 questions.',
       question: 'QUESTION',
       score: 'Score',
       submit: 'Submit Answer',
