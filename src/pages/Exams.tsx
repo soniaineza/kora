@@ -314,7 +314,7 @@ export function Exams() {
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row">
-                  <Link
+                      <Link
                     to="#"
                     onClick={async (e) => {
                       e.preventDefault();
@@ -322,7 +322,28 @@ export function Exams() {
                         const token = localStorage.getItem('kora-jwt');
                         if (!token) return;
 
-                        const res = await fetch(
+                        // Resume: if there's an active unfinished session for the clicked plan, use it.
+                        // If the active session is for a different plan, we start a new one.
+                        const resumeRes = await fetch(
+                          `${apiBase}/api/internal/active-session?plan=${encodeURIComponent(plan)}`,
+                          {
+                            method: 'GET',
+                            headers: { Authorization: `Bearer ${token}` }
+                          }
+                        );
+
+                        const resumeContentType = resumeRes.headers.get('content-type') || '';
+                        const resumeIsJson = resumeContentType.includes('application/json');
+                        const resumeData = resumeIsJson ? await resumeRes.json() : await resumeRes.text();
+
+                        if (resumeRes.ok && resumeData?.ok && resumeData?.session?.id) {
+                          window.location.href = `/exams?plan=${encodeURIComponent(plan)}&start=1&sessionId=${encodeURIComponent(
+                            resumeData.session.id
+                          )}`;
+                          return;
+                        }
+
+                        const startRes = await fetch(
                           `${apiBase}/api/internal/start-exam`,
                           {
                             method: 'POST',
@@ -334,25 +355,24 @@ export function Exams() {
                           }
                         );
 
-                        const contentType = res.headers.get('content-type') || '';
-                        const isJson = contentType.includes('application/json');
-                        const data = isJson ? await res.json() : await res.text();
+                        const startContentType = startRes.headers.get('content-type') || '';
+                        const startIsJson = startContentType.includes('application/json');
+                        const startData = startIsJson ? await startRes.json() : await startRes.text();
 
-                        if (!res.ok) {
-                          const msg = typeof data === 'string' ? data : data?.error || 'Cannot start exam';
+                        if (!startRes.ok) {
+                          const msg = typeof startData === 'string' ? startData : startData?.error || 'Cannot start exam';
                           alert(msg);
                           return;
                         }
 
-                        const sessionId = (data as any)?.sessionId;
-                        if (!sessionId) {
+                        const newSessionId = (startData as any)?.sessionId as string | undefined;
+                        if (!newSessionId) {
                           alert('Start exam succeeded but missing sessionId in response');
                           return;
                         }
 
-                        window.location.href = `/exams?plan=${encodeURIComponent(plan)}&start=1&sessionId=${encodeURIComponent(
-                          sessionId
-                        )}`;
+                        window.location.href = `/exams?plan=${encodeURIComponent(plan)}&start=1&sessionId=${encodeURIComponent(newSessionId)}`;
+
 
                       } catch {
                         alert('Cannot start exam');

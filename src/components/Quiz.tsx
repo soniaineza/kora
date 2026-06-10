@@ -44,7 +44,17 @@ const TriangleWarning = () =>
     </text>
   </svg>;
 
-export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { totalQuestions?: number; isSample?: boolean; sessionId?: string }) {
+export function Quiz({
+  totalQuestions = 5,
+  isSample = true,
+  sessionId,
+  plan,
+}: {
+  totalQuestions?: number;
+  isSample?: boolean;
+  sessionId?: string;
+  plan?: string;
+}) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -52,6 +62,7 @@ export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { total
   const [finished, setFinished] = useState(false);
   const [sampleTaken, setSampleTaken] = useState(false);
   const { t } = useLanguage();
+
   // build questions pool by cycling the t.quiz.questions entries
   const base = t.quiz.questions;
   const answers = [1, 1, 2, 2, 2];
@@ -91,6 +102,8 @@ export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { total
     );
   }
 
+  const apiBase = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:5001';
+
   if (finished) {
     const percentage = (score / questions.length) * 100;
     let message = t.quiz.keepGoing;
@@ -121,7 +134,7 @@ export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { total
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => {
                   setCurrent(0);
@@ -135,12 +148,22 @@ export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { total
                 <RotateCcw size={18} />
                 {t.quiz.tryAgain}
               </button>
-              {isSample && (
+              {!isSample && plan && !Number.isNaN(Number(plan)) && (
+                <div className="hidden" />
+              )}
+              {isSample ? (
                 <a
                   href="/packages"
                   className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
                   {t.quiz.fullAccess}
+                </a>
+              ) : (
+                <a
+                  href={`/buy?package=${encodeURIComponent(plan || '')}&network=mtn`}
+                  className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
+                >
+                  Get Full Access
                 </a>
               )}
             </div>
@@ -198,7 +221,7 @@ export function Quiz({ totalQuestions = 5, isSample = true, sessionId }: { total
   };
 
   return (
-    <section id="quiz" className="bg-background py-20 md:py-24">
+    <section id="quiz" className="bg-background py-20 md:py-24" data-plan={plan || ''}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="overflow-hidden rounded-[2rem] border border-border bg-background shadow-xl shadow-foreground/5">
           <div className="grid gap-6 lg:grid-cols-[1.15fr_1.85fr]">

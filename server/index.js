@@ -10,7 +10,6 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
@@ -18,11 +17,9 @@ app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.url}`);
   next();
 });
-
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY');
 }
@@ -62,6 +59,48 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
+
+function requireAuthOrFail(res, header) {
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing token' });
+  }
+  return null;
+}
+
+function getActiveSessionForUser({ phone, plan }) {
+  let q = supabaseAdmin
+    .from('exam_sessions')
+    .select('*')
+    .eq('phone', phone)
+    .eq('status', 'active');
+
+  if (plan) q = q.eq('plan', plan);
+
+  return q
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+}
+
+// Resume helper endpoint (used by /exams package-screen resume button)
+app.get('/api/internal/active-session', requireAuth, async (req, res) => {
+  try {
+    const plan = req.query.plan;
+    const phone = req.auth?.phone;
+
+    if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
+    if (!plan) return res.status(400).json({ error: 'plan is required' });
+
+    const { data, error } = await getActiveSessionForUser({ phone, plan });
+    if (error) return res.status(500).json({ error: error.message });
+
+    return res.json({ ok: true, session: data || null });
+  } catch (e) {
+    return res.status(500).json({ error: `Server error: ${e.message}` });
+  }
+});
+
+
 function normalizePhone(phone) {
   const cleaned = String(phone || '').replace(/\D/g, '');
   return cleaned ? `${cleaned}@kora.rw` : 'user@kora.rw';
