@@ -16,5 +16,4 @@ export function Layout() {
       </main>
       <Footer />
     </div>);
-
 }

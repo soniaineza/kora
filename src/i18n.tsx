@@ -709,9 +709,13 @@ function isLanguage(value: string | null): value is Language {
 }
 
 export function LanguageProvider({ children }: {children: React.ReactNode;}) {
-  const [language, setLanguageState] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>(() => {
+    const stored = localStorage.getItem('kora-language');
+    return isLanguage(stored) ? stored : 'rw';
+  });
 
   useEffect(() => {
+    // Keep existing stored value logic for first render
     const stored = localStorage.getItem('kora-language');
     if (isLanguage(stored)) setLanguageState(stored);
   }, []);

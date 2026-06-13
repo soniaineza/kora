@@ -1,19 +1,10 @@
-/* --- MANAGED FONT IMPORTS START (do not edit manually) --- */
-/* INTERNAL USE NAME: Heading */
 @import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 /* INTERNAL USE NAME: Mono */
 @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-/* --- MANAGED FONT IMPORTS END --- */
-
-/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
-
-/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-
-/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
 
 @custom-variant dark (&:is(.dark *));
 :root {
@@ -44,21 +35,16 @@
   --radius: 0.75rem;
 }
 :root.dark {
-  /* Near-black background */
   --background: oklch(0.13 0.005 240);
   --foreground: oklch(0.98 0 0);
-  /* Slightly elevated cards */
   --card: oklch(0.18 0.008 240);
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.18 0.008 240);
   --popover-foreground: oklch(0.98 0 0);
-  /* Keep emerald */
   --primary: oklch(0.72 0.18 162);
   --primary-foreground: oklch(0.1 0 0);
-  /* Deep mint secondary */
   --secondary: oklch(0.25 0.05 162);
   --secondary-foreground: oklch(0.85 0.12 162);
-  /* Dark muted */
   --muted: oklch(0.2 0.008 240);
   --muted-foreground: oklch(0.65 0 0);
   --accent: oklch(0.72 0.18 50);
@@ -76,6 +62,45 @@
   }
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
+    background-image:
+      radial-gradient(1200px circle at 10% 0%, color-mix(in oklch, var(--primary) 10%, transparent) 0%, transparent 60%),
+      radial-gradient(900px circle at 100% 20%, color-mix(in oklch, var(--accent) 12%, transparent) 0%, transparent 55%);
+  }
+
+  /* Smooth motion defaults (reusable glass/neomorph feel) */
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-strong {
+    /* Tailwind doesn't support bg-background/70 here (it needs numeric opacity). */
+    background-color: color-mix(in oklch, var(--background) 70%, transparent);
+    backdrop-filter: blur(24px);
+    border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  }
+
+  .neo {
+    box-shadow:
+      10px 10px 30px color-mix(in oklch, var(--foreground) 10%, transparent),
+      -10px -10px 30px color-mix(in oklch, var(--background) 70%, transparent);
+  }
+
+  .neo-inset {
+    box-shadow:
+      inset 10px 10px 30px color-mix(in oklch, var(--foreground) 12%, transparent),
+      inset -10px -10px 30px color-mix(in oklch, var(--background) 72%, transparent);
+  }
+
+  .smooth-pop {
+    transition:
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 420ms ease,
+      background-color 420ms ease;
+  }
+
+  .smooth-pop:hover {
+    transform: translateY(-6px);
   }
   a, button {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;

@@ -44,7 +44,7 @@ export function Nav() {
   // For hash links on home, plain anchors; otherwise navigate to /#xxx
   const hashLink = (hash: string) => isHome ? `#${hash}` : `/#${hash}`;
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/88 backdrop-blur-xl transition-colors duration-300">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl transition-colors duration-300 glass-strong smooth-pop">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-baseline gap-0">

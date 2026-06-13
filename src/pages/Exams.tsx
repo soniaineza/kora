@@ -5,6 +5,7 @@ import { useLanguage } from '../i18n';
 import { Quiz } from '../components/Quiz';
 import { getApiBase } from '../lib/api';
 
+
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
