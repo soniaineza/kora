@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+  import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 export const languages = ['en', 'rw', 'fr'] as const;
 export type Language = typeof languages[number];
@@ -699,8 +699,10 @@ type Translations = typeof translations.en;
 type LanguageContextValue = {
   language: Language;
   setLanguage: (language: Language) => void;
-  t: Translations;
+  t: (typeof translations)[Language];
 };
+
+
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
@@ -708,17 +710,27 @@ function isLanguage(value: string | null): value is Language {
   return languages.includes(value as Language);
 }
 
-export function LanguageProvider({ children }: {children: React.ReactNode;}) {
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+
   const [language, setLanguageState] = useState<Language>(() => {
     const stored = localStorage.getItem('kora-language');
     return isLanguage(stored) ? stored : 'rw';
   });
 
   useEffect(() => {
-    // Keep existing stored value logic for first render
+    // Force default (rw) on first visit when nothing is stored.
+    // This avoids Vercel fresh-session showing a different fallback language.
     const stored = localStorage.getItem('kora-language');
-    if (isLanguage(stored)) setLanguageState(stored);
+    if (!isLanguage(stored)) {
+      localStorage.setItem('kora-language', 'rw');
+      setLanguageState('rw');
+      document.documentElement.lang = 'rw';
+      return;
+    }
+
+    setLanguageState(stored);
   }, []);
+
 
   const setLanguage = (next: Language) => {
     setLanguageState(next);
