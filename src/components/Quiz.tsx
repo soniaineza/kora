@@ -87,6 +87,7 @@ export function Quiz({
   const storageKey = sessionId ? `kora-exam-timer-${sessionId}` : 'kora-sample-timer';
   const [startAtMs, setStartAtMs] = useState<number | null>(null);
 
+
   // Avoid runtime crash: ensure storageKey exists before any use.
   // (Previously, storageKey was referenced before initialization.)
   const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
@@ -149,6 +150,12 @@ export function Quiz({
   useEffect(() => {
     if (!isSample) return;
     let cancelled = false;
+
+    // For free sample: ensure timer is not started automatically.
+    // We'll also reset any previously armed state for a fresh attempt.
+    setTimerArmed(false);
+    setStartTapNonce(0);
+    setStartAtMs(null);
 
     (async () => {
       try {
@@ -221,9 +228,11 @@ export function Quiz({
     };
   }, [sessionId, isSample, storageKey]);
 
-  // Countdown
+  // Countdown (free trial should start only after user arms timer)
   useEffect(() => {
     if (!startAtMs) return;
+    if (isSample && !timerArmed) return;
+
     let mounted = true;
 
     const compute = () => {
@@ -244,7 +253,7 @@ export function Quiz({
       mounted = false;
       window.clearInterval(intervalId);
     };
-  }, [startAtMs, examDurationSeconds]);
+  }, [startAtMs, examDurationSeconds, isSample, timerArmed]);
 
   const submitExamOnce = React.useCallback(async () => {
     if (hasAutoSubmitted) return;
@@ -427,6 +436,24 @@ export function Quiz({
     if (revealed) return;
     setSelected(idx);
   };
+
+  const armTimerWithDoubleClick = () => {
+    if (!isSample) return;
+    if (timerArmed) return;
+
+    const now = Date.now();
+    const nonce = startTapNonce;
+    setStartTapNonce(nonce + 1);
+
+    // Simple double-tap: require 2 taps within a short window.
+    // If timerArmed, we ignore.
+    const shouldArm = nonce + 1 >= 2;
+    if (shouldArm) {
+      setTimerArmed(true);
+      // reset nonce so future arming (try again) works cleanly
+      setStartTapNonce(0);
+    }
+  };
   const handleSubmit = () => {
     if (selected === null) return;
     setRevealed(true);
@@ -472,7 +499,7 @@ export function Quiz({
                       <div className="inline-flex items-center gap-3 rounded-2xl bg-primary/10 border border-primary/20 px-4 py-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-extrabold text-primary tracking-wider tabular-nums">
-                            {formattedTime}
+                            {isSample && !timerArmed ? '20:00' : formattedTime}
                           </span>
                           <span className="text-sm font-semibold text-muted-foreground">
                             {language === 'rw' ? 'igihe gisigaye' : 'time left'}
@@ -480,6 +507,18 @@ export function Quiz({
                         </div>
                       </div>
                     </div>
+
+                    {isSample && !timerArmed && (
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={armTimerWithDoubleClick}
+                          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90"
+                        >
+                          {language === 'rw' ? 'Tangira igihe (gukanda kabiri)' : 'Start Timer (double tap)'}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="rounded-full bg-primary px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground">

@@ -1,8 +1,16 @@
-export const API_BASE_FALLBACK = 'http://localhost:5001';
-
 export function getApiBase() {
-  return ((import.meta as any).env?.VITE_API_BASE as string | undefined) || API_BASE_FALLBACK;
+  const apiBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
+
+  if (!apiBase) {
+    // In production (e.g. Vercel), we must never silently fall back to localhost.
+    // Throwing here makes the misconfiguration obvious.
+    throw new Error('Missing VITE_API_BASE environment variable');
+  }
+
+  return apiBase;
 }
+
+
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const apiBase = getApiBase();
