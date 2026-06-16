@@ -7,12 +7,9 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
-
 const app = express();
-
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
-
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.url}`);
   next();
@@ -47,15 +44,11 @@ function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const hasAuthHeader = Boolean(req.headers.authorization);
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-
-  // Helpful logs for debugging auth issues
   console.log('[AUTH] path=%s method=%s hasAuthHeader=%s', req.path, req.method, hasAuthHeader);
-
   if (!token) {
     console.log('[AUTH] Missing token');
     return res.status(401).json({ error: 'Missing token' });
   }
-
   try {
     const payload = jwt.verify(token, JWT_SECRET);
     req.auth = payload;
@@ -65,9 +58,6 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: `Invalid token: ${err.message}` });
   }
 }
-
-// In case the frontend accidentally calls GET for POST-only endpoints,
-// return a clearer error.
 app.get('/api/payments/mtn/start', (req, res) => {
   return res.status(405).json({ error: 'Use POST /api/payments/mtn/start' });
 });
