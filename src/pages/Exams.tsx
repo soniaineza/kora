@@ -310,6 +310,8 @@ export function Exams() {
                 </div>
 
                 <div className="space-y-4 text-sm text-foreground/90 leading-relaxed mb-8">
+                  <p className="font-semibold">Note:</p>
+                  <p>This full exam starts a <span className="font-bold">20-minute countdown</span> automatically after you press <span className="font-bold">Start Exam</span>.</p>
                   <p>Complete each 20-question exam and aim for at least 12 correct answers to pass.</p>
                   <p>Need a quick review before you begin? Read the library for traffic signs and road rules.</p>
                 </div>

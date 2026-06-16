@@ -45,20 +45,37 @@ const PLAN_MAP = {
 };
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
+  const hasAuthHeader = Boolean(req.headers.authorization);
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+
+  // Helpful logs for debugging auth issues
+  console.log('[AUTH] path=%s method=%s hasAuthHeader=%s', req.path, req.method, hasAuthHeader);
+
   if (!token) {
     console.log('[AUTH] Missing token');
     return res.status(401).json({ error: 'Missing token' });
   }
+
   try {
     const payload = jwt.verify(token, JWT_SECRET);
     req.auth = payload;
     return next();
   } catch (err) {
     console.log('[AUTH] Invalid token', err.message);
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: `Invalid token: ${err.message}` });
   }
 }
+
+// In case the frontend accidentally calls GET for POST-only endpoints,
+// return a clearer error.
+app.get('/api/payments/mtn/start', (req, res) => {
+  return res.status(405).json({ error: 'Use POST /api/payments/mtn/start' });
+});
+
+app.get('/api/payments/airtel/start', (req, res) => {
+  return res.status(405).json({ error: 'Use POST /api/payments/airtel/start' });
+});
+
 
 function requireAuthOrFail(res, header) {
   if (!header || !header.startsWith('Bearer ')) {
