@@ -47,7 +47,8 @@ export function Register() {
         throw new Error(language === 'rw' ? 'Ijambo ry\u2019ibanga rigomba kuba imibare 6 gusa.' : 'Password must be exactly 6 digits.');
       }
 
-      const res = await fetch(`${apiBase}/api/otp/send`, {
+      const res = await fetch(`${apiBase}/api/otp/send`.replace(/\/\/+/g, '/'), {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: p }),
@@ -72,7 +73,8 @@ export function Register() {
     try {
       const p = normalizePhone(phone);
 
-      const res = await fetch(`${apiBase}/api/otp/verify`, {
+      const res = await fetch(`${apiBase}/api/otp/verify`.replace(/\/\/+/g, '/'), {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: p, code }),
