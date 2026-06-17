@@ -9,11 +9,14 @@ function normalizePhone(raw: string) {
   return String(raw || '').replace(/\D/g, '');
 }
 
-const API_BASE_FALLBACK = 'http://localhost:5001';
-
 export function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const API = (import.meta as any).env?.VITE_API_URL as string | undefined;
+  if (!API) {
+    throw new Error('Missing VITE_API_URL environment variable');
+  }
 
   const [step, setStep] = useState<Step>('enter');
   const [phone, setPhone] = useState('');
@@ -28,17 +31,14 @@ export function Login() {
     setError(null);
     setSending(true);
     try {
-      const apiBase = (import.meta as any).env?.VITE_API_BASE || API_BASE_FALLBACK;
-      const p = normalizePhone(phone);
-      
-      const res = await fetch(`${apiBase}/api/otp/send`, {
+      const apiRes = await fetch(`${API}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p })
+        body: JSON.stringify({ phone: normalizePhone(phone) }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to send OTP');
+      const data = await apiRes.json();
+      if (!apiRes.ok) throw new Error(data?.error || 'Failed to send OTP');
 
       setStep('verify');
     } catch (err: any) {
@@ -53,32 +53,26 @@ export function Login() {
     setError(null);
     setVerifying(true);
     try {
-      const apiBase = (import.meta as any).env?.VITE_API_BASE || API_BASE_FALLBACK;
-      const p = normalizePhone(phone);
-
-      const res = await fetch(`${apiBase}/api/otp/verify`, {
+      const apiRes = await fetch(`${API}/api/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p, code })
+        body: JSON.stringify({ phone: normalizePhone(phone), code }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Verification failed');
+      const data = await apiRes.json();
+      if (!apiRes.ok) throw new Error(data?.error || 'Verification failed');
 
       if (data?.token) {
         localStorage.setItem('kora-jwt', data.token);
+
         // Ensure profile exists after login (placeholder avatar)
         const existing = localStorage.getItem('kora-profile');
         if (!existing) {
-          const seed = `${p}`;
+          const seed = `${normalizePhone(phone)}`;
           const avatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
-          localStorage.setItem(
-            'kora-profile',
-            JSON.stringify({ name: 'User', avatarUrl })
-          );
+          localStorage.setItem('kora-profile', JSON.stringify({ name: 'User', avatarUrl }));
         }
       }
-
 
       setTimeout(() => navigate('/packages'), 350);
     } catch (err: any) {
@@ -162,7 +156,7 @@ export function Login() {
                 </>
               )}
             </button>
-            
+
             <button
               type="button"
               onClick={() => setStep('enter')}
@@ -175,9 +169,12 @@ export function Login() {
 
         <div className="mt-6 pt-6 border-t border-border text-center text-sm">
           <span className="text-muted-foreground">{t.auth.newToKora} </span>
-          <Link to="/register" className="text-primary font-semibold hover:underline">{t.auth.createAccountLink}</Link>
+          <Link to="/register" className="text-primary font-semibold hover:underline">
+            {t.auth.createAccountLink}
+          </Link>
         </div>
       </div>
     </section>
   );
 }
+

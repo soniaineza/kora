@@ -8,7 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const app = express();
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://kora-nine-phi.vercel.app',
+  ],
+  credentials: true,
+}));
+
 app.use(express.json({ limit: '1mb' }));
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.url}`);

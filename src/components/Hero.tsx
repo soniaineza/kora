@@ -132,7 +132,7 @@ return (
                       scale: 1,
                     }}
                     transition={{
-                      duration: 0.45,
+                      duration: 0.45, 
                       delay: 1,
                       ease: 'easeOut'
                     }}>

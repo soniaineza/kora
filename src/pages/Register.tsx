@@ -6,7 +6,7 @@ type Step = 'enter' | 'verify';
 function normalizePhone(raw: string) {
   return String(raw || '').replace(/\D/g, '');
 }
-const API_BASE_FALLBACK = 'http://localhost:5001';
+
 export function Register() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -18,10 +18,17 @@ export function Register() {
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const canNext = useMemo(() => {
     const p = normalizePhone(phone);
     return p.length >= 9 && password6.length === 6 && /^\d{6}$/.test(password6);
   }, [phone, password6]);
+
+  const API = (import.meta as any).env?.VITE_API_URL as string | undefined;
+  if (!API) {
+    throw new Error('Missing VITE_API_URL environment variable');
+  }
+
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -30,6 +37,7 @@ export function Register() {
       if (!fullName.trim()) {
         throw new Error(language === 'rw' ? 'Andika amazina yose.' : 'Full name is required.');
       }
+
       const p = normalizePhone(phone);
       if (!p || p.length < 9) {
         throw new Error(language === 'rw' ? 'Andika nimero ya telefone neza.' : 'Enter a valid phone number.');
@@ -37,14 +45,16 @@ export function Register() {
       if (!/^\d{6}$/.test(password6)) {
         throw new Error(language === 'rw' ? 'Ijambo ry\u2019ibanga rigomba kuba imibare 6 gusa.' : 'Password must be exactly 6 digits.');
       }
-      const apiBase = (import.meta as any).env?.VITE_API_BASE || API_BASE_FALLBACK;
-      const res = await fetch(`${apiBase}/api/otp/send`, {
+
+      const res = await fetch(`${API}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p })
+        body: JSON.stringify({ phone: p }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Failed to send OTP');
+
       setStep('verify');
     } catch (err: any) {
       setError(err?.message || 'Registration failed');
@@ -52,32 +62,34 @@ export function Register() {
       setSending(false);
     }
   }
+
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setVerifying(true);
     try {
-      const apiBase = (import.meta as any).env?.VITE_API_BASE || API_BASE_FALLBACK;
       const p = normalizePhone(phone);
 
-      const res = await fetch(`${apiBase}/api/otp/verify`, {
+      const res = await fetch(`${API}/api/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p, code })
+        body: JSON.stringify({ phone: p, code }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Verification failed');
+
       if (!data?.token) {
         throw new Error('Verification failed');
       }
+
       localStorage.setItem('kora-jwt', data.token);
+
       // Create/store placeholder profile so the user has an avatar after signup
       const seed = `${p}`;
       const avatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
-      localStorage.setItem(
-        'kora-profile',
-        JSON.stringify({ name: fullName || 'User', avatarUrl })
-      );
+      localStorage.setItem('kora-profile', JSON.stringify({ name: fullName || 'User', avatarUrl }));
+
       setTimeout(() => navigate('/packages'), 350);
     } catch (err: any) {
       setError(err?.message || 'Verification failed');
@@ -85,6 +97,7 @@ export function Register() {
       setVerifying(false);
     }
   }
+
   return (
     <section className="bg-muted min-h-[calc(100vh-4rem)] flex items-center justify-center py-16 px-6">
       <div className="bg-background border border-border rounded-3xl p-8 md:p-10 w-full max-w-md shadow-sm">
@@ -117,6 +130,7 @@ export function Register() {
                 placeholder="e.g. Jean Claude"
               />
             </div>
+
             <div>
               <label className="text-xs font-semibold text-foreground block mb-2">Phone</label>
               <div className="relative">
@@ -131,6 +145,7 @@ export function Register() {
                 />
               </div>
             </div>
+
             <div>
               <label className="text-xs font-semibold text-foreground block mb-2">Password (6 digits)</label>
               <div className="relative">
@@ -146,6 +161,7 @@ export function Register() {
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">Your password must be exactly 6 digits.</p>
             </div>
+
             <button
               type="submit"
               disabled={sending || !canNext}
@@ -175,6 +191,7 @@ export function Register() {
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">Enter the 6-digit code sent to your phone.</p>
             </div>
+
             <button
               type="submit"
               disabled={verifying || code.length !== 6}
@@ -186,6 +203,7 @@ export function Register() {
                 </>
               )}
             </button>
+
             <button
               type="button"
               onClick={() => setStep('enter')}
@@ -195,16 +213,19 @@ export function Register() {
             </button>
           </form>
         )}
+
         <div className="mt-6 pt-6 border-t border-border text-center text-sm">
           <span className="text-muted-foreground">Already have account? </span>
-          <Link to="/login" className="text-primary font-semibold hover:underline">Login</Link>
+          <Link to="/login" className="text-primary font-semibold hover:underline">
+            Login
+          </Link>
         </div>
       </div>
     </section>
   );
 }
+
 function languageText(_: any, fallback: string) {
   return fallback;
 }
-
 
