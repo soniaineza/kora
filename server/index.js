@@ -65,15 +65,12 @@ app.get('/api/payments/mtn/start', (req, res) => {
 app.get('/api/payments/airtel/start', (req, res) => {
   return res.status(405).json({ error: 'Use POST /api/payments/airtel/start' });
 });
-
-
 function requireAuthOrFail(res, header) {
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing token' });
   }
   return null;
 }
-
 function getActiveSessionForUser({ phone, plan }) {
   let q = supabaseAdmin
     .from('exam_sessions')

@@ -60,7 +60,15 @@ const translations = {
       thisMonth: 'this month',
       phoneQuestion: 'What is the maximum speed limit in a built-up residential area?',
       questionCount: 'QUESTION 14 / 20',
-      passRate: 'PASS RATE'
+      passRate: 'PASS RATE',
+      provisoireSubtitle: 'Provisoire — cars & motorcycles',
+      mock: {
+        statusTime: '9:41',
+        questionTime: '02:41',
+        optionA: 'A. 40 km/h',
+        optionB: 'B. 60 km/h',
+        optionC: 'C. 80 km/h'
+      }
     },
     how: {
       eyebrow: 'HOW IT WORKS',
@@ -362,6 +370,7 @@ const translations = {
     },
     quiz: {
       badge: 'IKIZAMINI CY\'UBUNTU',
+      timeLeftLabel: 'igihe gisigaye',
       title: 'Gerageza ikibazo kimeze nk\'icy\'ikizamini.',
       subtitle: 'Ibibazo 5. Nta konti isabwa.',
       question: 'IKIBAZO',
@@ -721,12 +730,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     // Force default (rw) on first visit when nothing is stored.
     // This avoids Vercel fresh-session showing a different fallback language.
     const stored = localStorage.getItem('kora-language');
-    if (!isLanguage(stored)) {
+        if (!isLanguage(stored)) {
       localStorage.setItem('kora-language', 'rw');
       setLanguageState('rw');
       document.documentElement.lang = 'rw';
       return;
     }
+
+    // Ensure document language matches current stored language as default.
+    document.documentElement.lang = stored;
+
 
     setLanguageState(stored);
   }, []);
@@ -750,12 +763,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }),
     [language]
   );
-
   return (
     <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
   );
 }
-
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (!context) throw new Error('useLanguage must be used inside LanguageProvider');

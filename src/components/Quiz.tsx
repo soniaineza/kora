@@ -504,12 +504,14 @@ export function Quiz({
                       <div className="inline-flex items-center gap-3 rounded-2xl bg-primary/10 border border-primary/20 px-4 py-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-extrabold text-primary tracking-wider tabular-nums">
-                            {timerArmed ? formattedTime : '20:00'}
+                            {formattedTime}
                           </span>
 
                           <span className="text-sm font-semibold text-muted-foreground">
-                            {language === 'rw' ? 'igihe gisigaye' : 'time left'}
+                            {t.quiz.timeLeftLabel}
                           </span>
+
+
                         </div>
                       </div>
                     </div>

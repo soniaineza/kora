@@ -68,10 +68,8 @@ return (
       <div className="rounded-[2.85rem] bg-zinc-950 p-[9px]">
         <div className="relative h-[600px] overflow-hidden rounded-[2.35rem] bg-background">
           <div className="absolute left-1/2 top-3 z-30 h-7 w-28 -translate-x-1/2 rounded-full bg-zinc-950 shadow-sm"></div>
-
-          {/* Status bar */}
           <div className="relative z-10 flex items-center justify-between px-6 pb-3 pt-12 text-[10px] font-mono text-muted-foreground">
-            <span>9:41</span>
+            <span>{t.hero.mock?.statusTime ?? ''}</span>
             <div className="flex items-center gap-1.5 text-foreground">
               <Signal size={12} />
               <Wifi size={12} />
@@ -82,9 +80,8 @@ return (
             <div className="rounded-3xl border border-border bg-background/95 p-4 shadow-sm">
               <div className="mb-3 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
                 <span>{t.hero.questionCount}</span>
-                <span>02:41</span>
+                <span>{t.hero.mock?.questionTime ?? ''}</span>
               </div>
-              {/* Progress bar */}
               <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-muted">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-primary via-sky-500 to-accent"
@@ -124,7 +121,7 @@ return (
 
                 <div className="space-y-2.5">
                   <div className="rounded-xl border border-border px-4 py-3 text-sm text-foreground transition-colors">
-                    A. 40 km/h
+                    {t.hero.mock?.optionA ?? ''}
                   </div>
                   <motion.div
                     className="flex items-center justify-between rounded-xl border-2 border-primary bg-primary/5 px-4 py-3 text-sm text-foreground shadow-sm"
@@ -140,7 +137,7 @@ return (
                       ease: 'easeOut'
                     }}>
                     
-                    <span className="font-medium">B. 60 km/h</span>
+                    <span className="font-medium">{t.hero.mock?.optionB ?? ''}</span>
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                       <Check
                         size={12}
@@ -149,7 +146,7 @@ return (
                     </div>
                   </motion.div>
                   <div className="rounded-xl border border-border px-4 py-3 text-sm text-foreground transition-colors">
-                    C. 80 km/h
+                    {t.hero.mock?.optionC ?? ''}
                   </div>
                 </div>
               </div>
@@ -225,7 +222,7 @@ export function Hero() {
               <CarIcon />
               <MotorcycleIcon />
             </div>
-            <span className="text-sm font-semibold text-foreground">Provisoire — cars & motorcycles</span>
+            <span className="text-sm font-semibold text-foreground">{(t.hero as any).provisoireSubtitle ?? ((t.hero as any).provisoire_subtitle ?? '')}</span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 mb-10 relative z-20">
@@ -244,7 +241,8 @@ export function Hero() {
                 }
               }}
               className={`rounded-full border border-border px-6 py-3.5 text-center text-sm font-semibold backdrop-blur transition-all duration-300 hover:-translate-y-0.5 ${sampleTaken ? 'bg-background/85 hover:border-foreground/30 hover:bg-background' : 'bg-background/85 hover:border-foreground/30 hover:bg-background'}`}>
-              {sampleTaken ? (language === 'rw' ? 'Kora konti' : 'Create account') : t.hero.sample}
+              {sampleTaken ? t.hero.createAccountLink : t.hero.sample}
+
             </a>
 
           </div>
@@ -337,12 +335,12 @@ export function Hero() {
             className="h-56 w-full object-cover"
           />
           <div className="absolute left-4 top-4 rounded-3xl bg-white/95 px-3 py-2 shadow-lg shadow-foreground/10 border border-border">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-primary">Licence</p>
-            <p className="text-sm font-semibold text-foreground">Provisoire</p>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-primary">{t.hero.mock?.license ?? 'Licence'}</p>
+            <p className="text-sm font-semibold text-foreground">{t.hero.mock?.licenseProvisoire ?? 'Provisoire'}</p>
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950/90 to-transparent px-4 py-3">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-primary">Holding her provisoire</p>
-            <p className="text-sm font-semibold text-white">Happy new driver</p>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-primary">{t.hero.mock?.holdingProvisoire ?? 'Holding her provisoire'}</p>
+            <p className="text-sm font-semibold text-white">{t.hero.mock?.happyNewDriver ?? 'Happy new driver'}</p>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { useLanguage } from '../i18n';
 
+
 // SVG Icons
 const BrakeIcon = () => (
   <svg viewBox="0 0 64 64" className="w-16 h-16" aria-hidden="true">
@@ -12,7 +13,6 @@ const BrakeIcon = () => (
     <circle cx="32" cy="32" r="6" fill="#dc2626" />
   </svg>
 );
-
 const CarIcon = () => (
   <svg viewBox="0 0 64 64" className="w-16 h-16" aria-hidden="true">
     <rect x="16" y="28" width="32" height="18" rx="2" fill="none" stroke="#333" strokeWidth="2" />
@@ -21,7 +21,6 @@ const CarIcon = () => (
     <rect x="24" y="24" width="16" height="6" fill="none" stroke="#333" strokeWidth="2" />
   </svg>
 );
-
 const TrafficLightsIcon = () => (
   <svg viewBox="0 0 64 64" className="w-16 h-16" aria-hidden="true">
     <rect x="24" y="8" width="16" height="48" rx="2" fill="none" stroke="#333" strokeWidth="2" />

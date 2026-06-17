@@ -3,4 +3,3 @@
 - [ ] Make free-trial timer display always show running time once started (no double-tap display logic)
 - [ ] Ensure free-trial uses exactly 20 questions regardless of props/routes
 - [ ] Run dev build/typecheck to ensure no TS/React errors
-
