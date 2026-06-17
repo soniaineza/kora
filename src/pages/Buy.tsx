@@ -38,10 +38,10 @@ export function Buy() {
   const network = (q.get('network') || 'mtn') as Network;
 
   const plan = useMemo(() => PLAN_MAP[packageKey] ?? PLAN_MAP.STARTER, [packageKey]);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
 
   const title = language === 'rw' ? 'Kwishyura' : 'Complete Payment';
@@ -56,6 +56,7 @@ export function Buy() {
 
     try {
       const token = localStorage.getItem('kora-jwt');
+
       if (!token) {
         setError(language === 'rw' ? 'Musanze wiyandikishe mbere.' : 'Please register/verify first.');
         setLoading(false);
@@ -63,18 +64,22 @@ export function Buy() {
       }
 
       const apiBase = getApiBase();
-      console.log("API_BASE =", apiBase);
+
+      if (!apiBase) {
+        throw new Error('API base URL not configured');
+      }
+
       const paymentUrl = `${apiBase}/api/payments/${network}/start`;
-      console.log("PAYMENT_URL =", paymentUrl);
+
+      console.log('API_BASE =', apiBase);
+      console.log('PAYMENT_URL =', paymentUrl);
 
       const res = await fetch(paymentUrl, {
-
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-
         body: JSON.stringify({
           phone: phoneNumber,
           packageKey,
@@ -82,64 +87,62 @@ export function Buy() {
         })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Payment start failed');
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Invalid server response');
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Request failed (${res.status})`);
+      }
 
       setPaymentSessionId(data.paymentSessionId);
+
       navigate(
         `/verify?paymentSession=${encodeURIComponent(data.paymentSessionId)}&package=${encodeURIComponent(packageKey)}&phone=${encodeURIComponent(phoneNumber)}`
       );
+
     } catch (e: any) {
-      setError(e?.message || 'Failed');
+      setError(e?.message || 'Payment failed');
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <>
       <PageHeader title={title} subtitle={subtitle} />
+
       <section className="bg-background py-10">
         <div className="max-w-xl mx-auto px-6">
           <div className="rounded-3xl border border-border bg-background shadow-sm p-6">
+
             <div className="mb-5 text-sm text-muted-foreground">
               {language === 'rw' ? 'Pack' : 'Package'}:{' '}
               <span className="text-foreground font-semibold">
                 {language === 'rw' ? plan.titleRw : plan.titleEn}
               </span>
             </div>
+
             <div className="grid gap-4">
+
               <div>
                 <label className="text-xs font-semibold text-foreground block mb-2">
                   {language === 'rw' ? 'Numero wishyura' : 'Your phone number'}
                 </label>
+
                 <input
-                  className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder={language === 'rw' ? '07xxxxxxxx' : '07xxxxxxxx'}
+                  className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm"
+                  placeholder="07xxxxxxxx"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-xs text-muted-foreground">
-                  {language === 'rw' ? 'Ahandi' : 'Network'}: <span className="font-semibold text-foreground">{network.toUpperCase()}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/buy?package=${encodeURIComponent(packageKey)}&network=mtn`)}
-                    className={`text-xs px-3 py-2 rounded-full border ${network === 'mtn' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-border'}`}
-                  >
-                    MTN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/buy?package=${encodeURIComponent(packageKey)}&network=airtel`)}
-                    className={`text-xs px-3 py-2 rounded-full border ${network === 'airtel' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-border'}`}
-                  >
-                    Airtel
-                  </button>
-                </div>
+              <div className="text-xs text-muted-foreground">
+                Network: <b>{network.toUpperCase()}</b>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
@@ -148,22 +151,17 @@ export function Buy() {
                 type="button"
                 disabled={loading}
                 onClick={handleStart}
-                className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
               >
-                {loading
-                  ? language === 'rw'
-                    ? 'Bitegura...'
-                    : 'Processing...'
-                  : language === 'rw'
-                    ? 'Tangira'
-                    : 'Start Payment'}
+                {loading ? 'Processing...' : 'Start Payment'}
               </button>
 
               {paymentSessionId && (
                 <p className="text-xs text-muted-foreground">
-                  {language === 'rw' ? 'Session:' : 'Session:'} {paymentSessionId}
+                  Session: {paymentSessionId}
                 </p>
               )}
+
             </div>
           </div>
         </div>
@@ -171,4 +169,3 @@ export function Buy() {
     </>
   );
 }
-
