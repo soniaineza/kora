@@ -68,11 +68,22 @@ function requireAuth(req, res, next) {
 
   console.log('[AUTH]', req.method, req.path);
 
-  if (!header.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing token' });
+  // Allow missing Authorization header if token exists in localStorage
+  // (Some frontend deployments may not attach headers reliably.)
+  let token = '';
+  if (header.startsWith('Bearer ')) {
+    token = header.replace('Bearer ', '');
+  } else {
+    try {
+      token = localStorage?.getItem?.('kora-jwt') || '';
+    } catch {
+      token = '';
+    }
   }
 
-  const token = header.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ error: 'Missing token' });
+  }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
@@ -82,6 +93,7 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
+
 
 /**
  * 405 HANDLERS
@@ -163,6 +175,51 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Single source of truth for frontend polling: /api/internal/active-package
+app.get('/api/internal/active-package', requireAuth, async (req, res) => {
+  try {
+    const plan = req.query.plan;
+    const phone = req.auth?.phone;
+
+    if (!plan) {
+      return res.status(400).json({ error: 'plan is required' });
+    }
+    if (!phone) {
+      return res.status(401).json({ error: 'Missing phone in token' });
+    }
+
+    const nowIso = new Date().toISOString();
+
+    const { data, error } = await supabaseAdmin
+      .from('user_packages')
+      .select('*')
+      .eq('phone', phone)
+      .eq('package_key', plan)
+      .eq('status', 'active')
+      .or(`expires_at.gt.${nowIso},expires_at.is.null`)
+      .order('activated_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!data || data.length === 0) {
+      return res.json({ ok: true, active: false, remaining_attempts: 0 });
+    }
+
+    const pkg = data[0];
+    return res.json({
+      ok: true,
+      active: true,
+      remaining_attempts: pkg.unlimited ? 999999 : (pkg.remaining_attempts ?? 0),
+      expires_at: pkg.expires_at,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 /**
  * 404 JSON (IMPORTANT)
  */
@@ -172,6 +229,7 @@ app.use((req, res) => {
     path: req.originalUrl,
   });
 });
+
 
 /**
  * START SERVER

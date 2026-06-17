@@ -49,6 +49,8 @@ export function Verify() {
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        console.log("res=========>", res);
+
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
           if (data.active) {
