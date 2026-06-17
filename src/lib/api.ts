@@ -1,10 +1,7 @@
-export const API_BASE_FALLBACK = 'https://kora-mihw.onrender.com';
-
 export function getApiBase() {
-  const apiBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
-  if (!apiBase) return API_BASE_FALLBACK;
-  return String(apiBase).replace(/\/$/, '');
+  return (import.meta as any).env?.VITE_API_BASE as string;
 }
+
 
 
 

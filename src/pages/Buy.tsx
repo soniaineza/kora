@@ -63,9 +63,11 @@ export function Buy() {
       }
 
       const apiBase = getApiBase();
+      console.log("API_BASE =", apiBase);
+      const paymentUrl = `${apiBase}/api/payments/${network}/start`;
+      console.log("PAYMENT_URL =", paymentUrl);
 
-      const res = await fetch(`${apiBase}/api/payments/${network}/start`.replace(/\/\/+/g, '/'), {
-
+      const res = await fetch(paymentUrl, {
 
         method: 'POST',
         headers: {
@@ -93,7 +95,6 @@ export function Buy() {
       setLoading(false);
     }
   }
-
   return (
     <>
       <PageHeader title={title} subtitle={subtitle} />
@@ -106,7 +107,6 @@ export function Buy() {
                 {language === 'rw' ? plan.titleRw : plan.titleEn}
               </span>
             </div>
-
             <div className="grid gap-4">
               <div>
                 <label className="text-xs font-semibold text-foreground block mb-2">

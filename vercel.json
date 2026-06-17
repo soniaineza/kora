@@ -1,8 +1,12 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/webhooks/(.*)", "destination": "/webhooks" },
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://kora-mihw.onrender.com/api/:path*"
+    },
+    {
+      "source": "/webhooks/:path*",
+      "destination": "https://kora-mihw.onrender.com/webhooks/:path*"
+    }
   ]
 }
-

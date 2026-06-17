@@ -178,7 +178,6 @@ export function Packages() {
                   </div>
                 )}
 
-
                 <div className={`text-sm font-semibold mb-4 ${pkg.highlight ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
                   {pkg.questions} {language === 'rw' ? 'ibizamini' : 'exams'}
                 </div>
