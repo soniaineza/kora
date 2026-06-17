@@ -1,10 +1,11 @@
+export const API_BASE_FALLBACK = 'https://kora-mihw.onrender.com';
+
 export function getApiBase() {
   const apiBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
-
-  const resolved = apiBase || window.location.origin;
-  // Normalize: avoid double slashes when concatenating `${apiBase}${path}`.
-  return resolved.replace(/\/$/, '');
+  if (!apiBase) return API_BASE_FALLBACK;
+  return String(apiBase).replace(/\/$/, '');
 }
+
 
 
 

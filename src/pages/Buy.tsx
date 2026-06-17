@@ -65,6 +65,8 @@ export function Buy() {
       const apiBase = getApiBase();
 
       const res = await fetch(`${apiBase}/api/payments/${network}/start`.replace(/\/\/+/g, '/'), {
+
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

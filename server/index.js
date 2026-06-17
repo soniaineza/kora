@@ -53,18 +53,14 @@ function requireAuth(req, res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   console.log('[AUTH] path=%s method=%s hasAuthHeader=%s', req.path, req.method, hasAuthHeader);
 
-  // Handle cases where frontend sends token but key may be different
-  // (e.g. older flows storing in another localStorage key).
-  const fallbackToken = !token ? localStorage?.getItem?.('kora-jwt') : null;
-
-  const effectiveToken = token || fallbackToken;
-
-  if (!effectiveToken) {
+  if (!token) {
     console.log('[AUTH] Missing token');
     return res.status(401).json({ error: 'Missing token' });
   }
+
   try {
-    const payload = jwt.verify(effectiveToken, JWT_SECRET);
+    const payload = jwt.verify(token, JWT_SECRET);
+
     req.auth = payload;
     return next();
   } catch (err) {
@@ -72,6 +68,13 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: `Invalid token: ${err.message}` });
   }
 }
+
+// Ensure all uncaught errors still return JSON
+app.use((err, req, res, next) => {
+  console.error('[UNHANDLED]', err);
+  res.status(500).json({ error: err?.message || 'Server error' });
+});
+
 
 app.get('/api/payments/mtn/start', (req, res) => {
   return res.status(405).json({ error: 'Use POST /api/payments/mtn/start' });
