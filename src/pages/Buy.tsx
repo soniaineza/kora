@@ -62,16 +62,18 @@ export function Buy() {
         setLoading(false);
         return;
       }
+const apiBase = getApiBase()?.trim();
 
-      const apiBase = getApiBase();
+if (!apiBase) {
+  throw new Error('API base URL not configured');
+}
 
-      if (!apiBase) {
-        throw new Error('API base URL not configured');
-      }
+const cleanBase = apiBase.replace(/\/$/, '');
 
-      const paymentUrl = `${apiBase.replace(/\/$/, '')}/api/payments/${network}/start`;
-      console.log('API_BASE =', apiBase);
-      console.log('PAYMENT_URL =', paymentUrl);
+const paymentUrl = `${cleanBase}/api/payments/${network}/start`;
+
+console.log('API_BASE =', cleanBase);
+console.log('PAYMENT_URL =', paymentUrl);
 
       const res = await fetch(paymentUrl, {
         method: 'POST',
