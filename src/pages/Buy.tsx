@@ -69,8 +69,7 @@ export function Buy() {
         throw new Error('API base URL not configured');
       }
 
-      const paymentUrl = `${apiBase}/api/payments/${network}/start`;
-
+      const paymentUrl = `${apiBase.replace(/\/$/, '')}/api/payments/${network}/start`;
       console.log('API_BASE =', apiBase);
       console.log('PAYMENT_URL =', paymentUrl);
 
