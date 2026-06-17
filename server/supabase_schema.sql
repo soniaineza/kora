@@ -39,6 +39,9 @@ for each row execute function public.set_updated_at();
 -- Package activations for users
 -- package_key examples (align with frontend/backend):
 -- STARTER, BASIC, STANDARD, MASTER, PREMIUM(=3000), PRO, UNLIMITED
+-- Package purchase records (1 row per purchase)
+-- NOTE: existing app code uses `user_packages` for activation state.
+-- We keep the table name to avoid widespread breaking changes, but treat each row as a purchase.
 create table if not exists public.user_packages (
   id text primary key,
   phone text not null,
@@ -49,11 +52,16 @@ create table if not exists public.user_packages (
   payment_reference text,
   activated_at timestamptz,
   expires_at timestamptz,
+
+  -- attempt accounting per purchase
+  total_attempts integer,
   remaining_attempts integer,
   unlimited boolean not null default false,
+
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
 
 drop trigger if exists trg_user_packages_updated_at on public.user_packages;
 create trigger trg_user_packages_updated_at
@@ -84,5 +92,32 @@ before update on public.exam_sessions
 for each row execute function public.set_updated_at();
 
 create index if not exists idx_exam_sessions_phone_active on public.exam_sessions(phone, status);
+
+-- Attempt audit trail (exactly when/which exam consumed an attempt)
+create table if not exists public.attempt_history (
+  id bigserial primary key,
+  user_id text not null,
+  user_package_id text not null,
+  exam_session_id text not null,
+  plan text not null,
+
+  -- optional: keep examId if you later add per-question exam mapping
+  exam_id text,
+
+  attempt_consumed boolean not null default false,
+  attempt_consumed_at timestamptz not null default now(),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists trg_attempt_history_updated_at on public.attempt_history;
+create trigger trg_attempt_history_updated_at
+before update on public.attempt_history
+for each row execute function public.set_updated_at();
+
+create index if not exists idx_attempt_history_user_package on public.attempt_history(user_package_id);
+create index if not exists idx_attempt_history_user on public.attempt_history(user_id);
+
 
 

@@ -25,9 +25,9 @@ export function Register() {
   }, [phone, password6]);
 
   const API = (import.meta as any).env?.VITE_API_URL as string | undefined;
-  if (!API) {
-    throw new Error('Missing VITE_API_URL environment variable');
-  }
+  // Local/dev fallback: use same-origin to avoid crashing when env var isn't set
+  const apiBase = API || window.location.origin;
+
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -46,13 +46,14 @@ export function Register() {
         throw new Error(language === 'rw' ? 'Ijambo ry\u2019ibanga rigomba kuba imibare 6 gusa.' : 'Password must be exactly 6 digits.');
       }
 
-      const res = await fetch(`${API}/api/otp/send`, {
+      const res = await fetch(`${apiBase}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: p }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) throw new Error(data?.error || 'Failed to send OTP');
 
       setStep('verify');
@@ -70,13 +71,14 @@ export function Register() {
     try {
       const p = normalizePhone(phone);
 
-      const res = await fetch(`${API}/api/otp/verify`, {
+      const res = await fetch(`${apiBase}/api/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: p, code }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) throw new Error(data?.error || 'Verification failed');
 
       if (!data?.token) {

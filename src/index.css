@@ -60,12 +60,16 @@
   * {
     @apply border-border outline-ring;
   }
-  body {
+body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
     background-image:
       radial-gradient(1200px circle at 10% 0%, color-mix(in oklch, var(--primary) 10%, transparent) 0%, transparent 60%),
       radial-gradient(900px circle at 100% 20%, color-mix(in oklch, var(--accent) 12%, transparent) 0%, transparent 55%);
   }
+
+  /* Force default light mode by removing the `.dark` dependency unless user toggles it */
+  html:not(.dark) { }
+
 
   /* Smooth motion defaults (reusable glass/neomorph feel) */
   .glass {

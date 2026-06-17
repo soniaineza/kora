@@ -232,10 +232,11 @@ export function Quiz({
     };
   }, [sessionId, isSample, storageKey]);
 
-  // Countdown (free trial should start only after user arms timer)
+  // Countdown (timer should start only after user clicks Start Timer)
   useEffect(() => {
     if (!startAtMs) return;
     if (isSample && !timerArmed) return;
+
 
     let mounted = true;
 

@@ -40,7 +40,7 @@ export function Verify() {
 
     let intervalId: any;
     
-    const checkStatus = async () => {
+          const checkStatus = async () => {
       try {
         const token = localStorage.getItem('kora-jwt');
         if (!token) return;
@@ -48,9 +48,9 @@ export function Verify() {
         const res = await fetch(`${apiBase}/api/internal/active-package?plan=${encodeURIComponent(packageKey)}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (res.ok) {
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
           if (data.active) {
             setIsSuccess(true);
             if (intervalId) clearInterval(intervalId);
@@ -60,6 +60,7 @@ export function Verify() {
         // ignore polling errors
       }
     };
+
 
     intervalId = setInterval(checkStatus, 3000);
     checkStatus();

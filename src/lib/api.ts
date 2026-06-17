@@ -2,13 +2,13 @@ export function getApiBase() {
   const apiBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
 
   if (!apiBase) {
-    // In production (e.g. Vercel), we must never silently fall back to localhost.
-    // Throwing here makes the misconfiguration obvious.
-    throw new Error('Missing VITE_API_BASE environment variable');
+    // Prefer same-origin in production to avoid the browser calling localhost/loopback.
+    return window.location.origin;
   }
 
   return apiBase;
 }
+
 
 
 

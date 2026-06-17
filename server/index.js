@@ -52,12 +52,19 @@ function requireAuth(req, res, next) {
   const hasAuthHeader = Boolean(req.headers.authorization);
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   console.log('[AUTH] path=%s method=%s hasAuthHeader=%s', req.path, req.method, hasAuthHeader);
-  if (!token) {
+
+  // Handle cases where frontend sends token but key may be different
+  // (e.g. older flows storing in another localStorage key).
+  const fallbackToken = !token ? localStorage?.getItem?.('kora-jwt') : null;
+
+  const effectiveToken = token || fallbackToken;
+
+  if (!effectiveToken) {
     console.log('[AUTH] Missing token');
     return res.status(401).json({ error: 'Missing token' });
   }
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(effectiveToken, JWT_SECRET);
     req.auth = payload;
     return next();
   } catch (err) {
@@ -65,6 +72,7 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: `Invalid token: ${err.message}` });
   }
 }
+
 app.get('/api/payments/mtn/start', (req, res) => {
   return res.status(405).json({ error: 'Use POST /api/payments/mtn/start' });
 });
@@ -355,7 +363,7 @@ app.get('/api/internal/package-def', requireAuth, async (req, res) => {
   res.json({ ok: true, plan, days: def.days, exams: def.exams });
 });
 
-// Server-side attempt enforcement
+// Server-side attempt enforcement (NO deduction here; deduction happens only after successful submit)
 app.post('/api/internal/start-exam', requireAuth, async (req, res) => {
   try {
     const { plan } = req.body || {};
@@ -369,7 +377,8 @@ app.post('/api/internal/start-exam', requireAuth, async (req, res) => {
     const nowIso = new Date().toISOString();
     const sessionId = `es_${phone.replace(/[^0-9a-zA-Z@._-]/g, '')}_${plan}_${Date.now()}`;
 
-    // Fetch active package row
+    // Fetch oldest active package for FIFO attempt consumption later.
+    // We do NOT decrement attempts here.
     const { data: pkgs, error: pkgErr } = await supabaseAdmin
       .from('user_packages')
       .select('*')
@@ -377,26 +386,24 @@ app.post('/api/internal/start-exam', requireAuth, async (req, res) => {
       .eq('package_key', plan)
       .eq('status', 'active')
       .or(`expires_at.gt.${nowIso},expires_at.is.null`)
-      .order('activated_at', { ascending: false })
+      .order('activated_at', { ascending: true })
       .limit(1);
 
     if (pkgErr) {
       console.error('[START-EXAM] pkg fetch error:', pkgErr);
       return res.status(500).json({ error: pkgErr.message });
     }
-    
+
     if (!pkgs || pkgs.length === 0) {
-      console.log('[START-EXAM] No active package found');
-      return res.json({ ok: true, active: false });
+      return res.status(402).json({ error: 'You have no remaining exam attempts. Please purchase a package.' });
     }
 
     const pkg = pkgs[0];
-    const remaining = pkg.remaining_attempts ?? 0;
+    const remaining = pkg.unlimited ? 999999 : (pkg.remaining_attempts ?? 0);
 
-    // Decrement attempts if not unlimited
+    // Validation only (no deduction)
     if (!pkg.unlimited && remaining <= 0) {
-      console.log('[START-EXAM] No attempts left');
-      return res.status(402).json({ error: 'No remaining attempts. Upgrade or buy again.' });
+      return res.status(402).json({ error: 'You have no remaining exam attempts. Please purchase a package.' });
     }
 
     const { error: sessErr } = await supabaseAdmin
@@ -418,29 +425,13 @@ app.post('/api/internal/start-exam', requireAuth, async (req, res) => {
       return res.status(500).json({ error: sessErr.message });
     }
 
-    let remainingAfter = remaining;
-    if (!pkg.unlimited) {
-      const { error: updErr } = await supabaseAdmin
-        .from('user_packages')
-        .update({
-          remaining_attempts: remaining - 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', pkg.id);
-
-      if (updErr) {
-        console.error('[START-EXAM] update attempts error:', updErr);
-        return res.status(500).json({ error: updErr.message });
-      }
-      remainingAfter = remaining - 1;
-    }
-
-    return res.json({ ok: true, remaining_attempts: remainingAfter, sessionId });
+    return res.json({ ok: true, sessionId });
   } catch (err) {
     console.error('[START-EXAM] global error:', err);
     return res.status(500).json({ error: `Server error: ${err.message}` });
   }
 });
+
 
 // Validate session for quiz rendering (prevents bypass)
 app.get('/api/internal/session', requireAuth, async (req, res) => {
@@ -547,21 +538,84 @@ app.post('/api/internal/submit-exam', requireAuth, async (req, res) => {
   const phone = req.auth?.phone;
   if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
 
-  const { error } = await supabaseAdmin
-    .from('exam_sessions')
-    .update({
-      status: 'completed',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', sessionId)
-    .eq('phone', phone);
+  try {
+    // Load session so we can deduct from the correct purchase (and idempotently).
+    const { data: sessionRow, error: sessErr } = await supabaseAdmin
+      .from('exam_sessions')
+      .select('id, phone, status, plan, user_package_id, expires_at')
+      .eq('id', sessionId)
+      .eq('phone', phone)
+      .limit(1)
+      .maybeSingle();
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (sessErr) return res.status(500).json({ error: sessErr.message });
+    if (!sessionRow) return res.status(410).json({ error: 'Invalid or inactive session' });
 
-  console.log(`[EXAM SUBMIT] phone=${phone} sessionId=${sessionId} score=${score}/${totalQuestions}`);
+    // Idempotency: if already completed, do not deduct again.
+    if (sessionRow.status !== 'completed') {
+      const { error: updErr } = await supabaseAdmin
+        .from('exam_sessions')
+        .update({
+          status: 'completed',
+          score: Number(score ?? 0),
+          total_questions: Number(totalQuestions ?? 20),
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId)
+        .eq('phone', phone);
 
-  return res.json({ ok: true });
+      if (updErr) return res.status(500).json({ error: updErr.message });
+
+      // Deduct attempt only if this session is linked to a purchase and that purchase is not unlimited.
+      const userPackageId = sessionRow.user_package_id;
+      if (userPackageId) {
+        const { data: pkgRow, error: pkgErr } = await supabaseAdmin
+          .from('user_packages')
+          .select('id, unlimited, remaining_attempts')
+          .eq('id', userPackageId)
+          .limit(1)
+          .maybeSingle();
+
+        if (pkgErr) return res.status(500).json({ error: pkgErr.message });
+
+        if (pkgRow && !pkgRow.unlimited) {
+          const remaining = pkgRow.remaining_attempts ?? 0;
+          if (remaining <= 0) {
+            // Should not happen if start-exam validation was correct; do not go negative.
+            return res.status(402).json({ error: 'No remaining attempts. Please purchase a package.' });
+          }
+
+          const { error: decErr } = await supabaseAdmin
+            .from('user_packages')
+            .update({
+              remaining_attempts: remaining - 1,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', userPackageId);
+
+          if (decErr) return res.status(500).json({ error: decErr.message });
+
+          // Attempt audit trail (table must exist)
+          await supabaseAdmin.from('attempt_history').upsert({
+            user_package_id: userPackageId,
+            user_id: phone,
+            exam_session_id: sessionId,
+            plan: sessionRow.plan,
+            attempt_consumed: true,
+            attempt_consumed_at: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    console.log(`[EXAM SUBMIT] phone=${phone} sessionId=${sessionId} score=${score}/${totalQuestions}`);
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: `Server error: ${e.message}` });
+  }
 });
+
 
 app.get('/api/internal/active-package', requireAuth, async (req, res) => {
   try {
@@ -687,8 +741,14 @@ app.get('/api/admin/most-popular', requireAuth, requireAdminDemo, async (req, re
   });
 });
 
+// JSON 404 fallback (prevents HTML causing `Unexpected token '<'` in the frontend)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.originalUrl });
+});
+
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`kora-server running on port ${PORT}`);
 });
+
 
