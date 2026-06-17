@@ -1,18 +1,16 @@
 export function getApiBase() {
   const apiBase = (import.meta as any).env?.VITE_API_BASE as string | undefined;
 
-  if (!apiBase) {
-    // Prefer same-origin in production to avoid the browser calling localhost/loopback.
-    return window.location.origin;
-  }
-
-  return apiBase;
+  const resolved = apiBase || window.location.origin;
+  // Normalize: avoid double slashes when concatenating `${apiBase}${path}`.
+  return resolved.replace(/\/$/, '');
 }
 
 
 
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+
   const apiBase = getApiBase();
   const token = localStorage.getItem('kora-jwt');
 

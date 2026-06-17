@@ -25,8 +25,9 @@ export function Register() {
   }, [phone, password6]);
 
   const API = (import.meta as any).env?.VITE_API_URL as string | undefined;
-  // Local/dev fallback: use same-origin to avoid crashing when env var isn't set
-  const apiBase = API || window.location.origin;
+  // Hosted fallback: use same-origin. Also normalize to avoid double // when building URLs.
+  const apiBase = (API || window.location.origin).replace(/\/$/, '');
+
 
 
   async function handleSendOtp(e: React.FormEvent) {
