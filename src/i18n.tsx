@@ -721,28 +721,19 @@ function isLanguage(value: string | null): value is Language {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
-  const [language, setLanguageState] = useState<Language>(() => {
-    const stored = localStorage.getItem('kora-language');
-    return isLanguage(stored) ? stored : 'rw';
-  });
+  // Hard default to Kinyarwanda on every fresh load.
+  // This prevents hosted (Vercel) caching/localStorage from keeping an old language.
+  const [language, setLanguageState] = useState<Language>('rw');
 
   useEffect(() => {
-    // Force default (rw) on first visit when nothing is stored.
-    // This avoids Vercel fresh-session showing a different fallback language.
-    const stored = localStorage.getItem('kora-language');
-        if (!isLanguage(stored)) {
-      localStorage.setItem('kora-language', 'rw');
-      setLanguageState('rw');
-      document.documentElement.lang = 'rw';
-      return;
-    }
-
-    // Ensure document language matches current stored language as default.
-    document.documentElement.lang = stored;
-
-
-    setLanguageState(stored);
+    // Always force rw as the app default.
+    // Keep both possible keys to avoid conflicts with older versions.
+    localStorage.setItem('kora-language', 'rw');
+    localStorage.setItem('language', 'rw');
+    document.documentElement.lang = 'rw';
+    setLanguageState('rw');
   }, []);
+
 
 
   const setLanguage = (next: Language) => {

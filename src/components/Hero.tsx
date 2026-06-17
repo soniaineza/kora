@@ -129,7 +129,7 @@ return (
                       scale: 0.98
                     }}
                     animate={{
-                      scale: 1
+                      scale: 1,
                     }}
                     transition={{
                       duration: 0.45,
