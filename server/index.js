@@ -280,16 +280,21 @@ app.get('/api/internal/active-package', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * 404 JSON (IMPORTANT)
- */
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    path: req.originalUrl,
+// Root health endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Kora backend is running',
+    status: 'OK',
   });
 });
 
+// Clean 404 handling for all other routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.path,
+  });
+});
 
 /**
  * START SERVER
