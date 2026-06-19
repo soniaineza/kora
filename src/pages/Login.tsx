@@ -13,10 +13,11 @@ export function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const API = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined;
+  const API = (import.meta as any).env?.VITE_API_BASE as string | undefined;
   if (!API) {
-    throw new Error('Missing VITE_API_BASE_URL environment variable');
+    throw new Error('Missing VITE_API_BASE environment variable');
   }
+
 
 
   const [step, setStep] = useState<Step>('enter');

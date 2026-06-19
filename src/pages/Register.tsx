@@ -28,7 +28,8 @@ export function Register() {
     return p.length >= 9 && password6.length === 6 && /^\d{6}$/.test(password6);
   }, [phone, password6]);
 
-  const API = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined;
+  const API = (import.meta as any).env?.VITE_API_BASE as string | undefined;
+
   // Hosted fallback: use same-origin. Also normalize to avoid double // when building URLs.
   const apiBase = (API || window.location.origin).replace(/\/$/, '');
 
