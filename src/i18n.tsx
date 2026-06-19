@@ -716,7 +716,7 @@ type LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 function isLanguage(value: string | null): value is Language {
-  return languages.includes(value as Language);
+  return value === 'rw' || value === 'en' || value === 'fr';
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -726,12 +726,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('rw');
 
   useEffect(() => {
-    // Always force rw as the app default.
-    // Keep both possible keys to avoid conflicts with older versions.
-    localStorage.setItem('kora-language', 'rw');
-    localStorage.setItem('language', 'rw');
-    document.documentElement.lang = 'rw';
-    setLanguageState('rw');
+    const stored = localStorage.getItem('kora-language') || localStorage.getItem('language');
+    const initial: Language = isLanguage(stored) ? stored : 'rw';
+    localStorage.setItem('kora-language', initial);
+    localStorage.setItem('language', initial);
+    document.documentElement.lang = initial === 'rw' ? 'rw' : initial;
+    setLanguageState(initial);
   }, []);
 
 

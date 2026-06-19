@@ -157,8 +157,77 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * Free exam endpoints (prevent frontend 404 reload loops)
+ */
+app.get('/api/internal/free-exam/status', requireAuth, async (req, res) => {
+  try {
+    const phone = req.auth?.phone;
+    if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
+
+    const { data, error } = await supabaseAdmin
+      .from('exam_sessions')
+      .select('id')
+      .eq('phone', phone)
+      .eq('plan', 'FREE_SAMPLE')
+      .eq('status', 'completed')
+      .limit(1)
+      .maybeSingle();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    return res.json({ ok: true, alreadyTaken: !!data });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/internal/free-exam/complete', requireAuth, async (req, res) => {
+  try {
+    const phone = req.auth?.phone;
+    if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
+
+    const { score, totalQuestions } = req.body || {};
+    const now = new Date().toISOString();
+
+    // Idempotent: if already completed, do nothing
+    const { data: existing, error: existingErr } = await supabaseAdmin
+      .from('exam_sessions')
+      .select('id')
+      .eq('phone', phone)
+      .eq('plan', 'FREE_SAMPLE')
+      .eq('status', 'completed')
+      .limit(1)
+      .maybeSingle();
+
+    if (existingErr) return res.status(500).json({ error: existingErr.message });
+    if (existing) return res.json({ ok: true, alreadyCompleted: true });
+
+    const sessionId = `fs_${phone.replace(/[^0-9a-zA-Z@._-]/g, '')}_${Date.now()}`;
+
+    const { error: insErr } = await supabaseAdmin.from('exam_sessions').upsert({
+      id: sessionId,
+      phone,
+      plan: 'FREE_SAMPLE',
+      status: 'completed',
+      score: Number(score ?? 0),
+      total_questions: Number(totalQuestions ?? 20),
+      updated_at: now,
+      completed_at: now,
+      expires_at: null,
+    });
+
+    if (insErr) return res.status(500).json({ error: insErr.message });
+
+    return res.json({ ok: true, alreadyCompleted: false });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // Single source of truth for frontend polling: /api/internal/active-package
 app.get('/api/internal/active-package', requireAuth, async (req, res) => {
+
   try {
     const plan = req.query.plan;
     const phone = req.auth?.phone;

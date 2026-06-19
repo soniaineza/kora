@@ -10,6 +10,10 @@ function normalizePhone(raw: string) {
 export function Register() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const [nextPath] = React.useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('next');
+  });
   const [step, setStep] = useState<Step>('enter');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -24,9 +28,10 @@ export function Register() {
     return p.length >= 9 && password6.length === 6 && /^\d{6}$/.test(password6);
   }, [phone, password6]);
 
-  const API = (import.meta as any).env?.VITE_API_URL as string | undefined;
+  const API = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined;
   // Hosted fallback: use same-origin. Also normalize to avoid double // when building URLs.
   const apiBase = (API || window.location.origin).replace(/\/$/, '');
+
 
 
 
@@ -95,7 +100,13 @@ export function Register() {
       const avatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
       localStorage.setItem('kora-profile', JSON.stringify({ name: fullName || 'User', avatarUrl }));
 
-      setTimeout(() => navigate('/packages'), 350);
+      setTimeout(() => {
+        if (nextPath) {
+          navigate(nextPath);
+        } else {
+          navigate('/packages');
+        }
+      }, 350);
     } catch (err: any) {
       setError(err?.message || 'Verification failed');
     } finally {

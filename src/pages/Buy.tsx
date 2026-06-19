@@ -44,11 +44,13 @@ export function Buy() {
   const [error, setError] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
 
-  const title = language === 'rw' ? 'Kwishyura' : 'Complete Payment';
+  const title = language === 'rw' ? 'Kwishyura' : language === 'fr' ? 'Paiement complet' : 'Complete Payment';
   const subtitle =
     language === 'rw'
       ? `Tegura umubare wa telefone hanyuma uhitemo MTN/Airtel kugira ubone code.`
-      : 'Enter the phone number you will use for MTN/Airtel, then confirm to get your payment code.';
+      : language === 'fr'
+        ? 'Entrez le numéro de téléphone que vous utiliserez pour MTN/Airtel, puis confirmez pour recevoir votre code de paiement.'
+        : 'Enter the phone number you will use for MTN/Airtel, then confirm to get your payment code.';
 
   async function handleStart() {
     setLoading(true);
@@ -58,8 +60,8 @@ export function Buy() {
       const token = localStorage.getItem('kora-jwt');
 
       if (!token) {
-        setError(language === 'rw' ? 'Musanze wiyandikishe mbere.' : 'Please register/verify first.');
-        setLoading(false);
+        const next = `/buy?package=${encodeURIComponent(packageKey)}&network=${encodeURIComponent(network)}&from=buy`;
+        navigate(`/register?next=${encodeURIComponent(next)}`);
         return;
       }
 const apiBase = getApiBase()?.trim();
@@ -121,9 +123,9 @@ console.log('PAYMENT_URL =', paymentUrl);
           <div className="rounded-3xl border border-border bg-background shadow-sm p-6">
 
             <div className="mb-5 text-sm text-muted-foreground">
-              {language === 'rw' ? 'Pack' : 'Package'}:{' '}
+              {language === 'rw' ? 'Pack' : language === 'fr' ? 'Forfait' : 'Package'}:{' '}
               <span className="text-foreground font-semibold">
-                {language === 'rw' ? plan.titleRw : plan.titleEn}
+                {language === 'rw' ? plan.titleRw : language === 'fr' ? plan.titleEn : plan.titleEn}
               </span>
             </div>
 
@@ -131,7 +133,7 @@ console.log('PAYMENT_URL =', paymentUrl);
 
               <div>
                 <label className="text-xs font-semibold text-foreground block mb-2">
-                  {language === 'rw' ? 'Numero wishyura' : 'Your phone number'}
+                  {language === 'rw' ? 'Numero wishyura' : language === 'fr' ? 'Votre numéro de téléphone' : 'Your phone number'}
                 </label>
 
                 <input
@@ -154,7 +156,7 @@ console.log('PAYMENT_URL =', paymentUrl);
                 onClick={handleStart}
                 className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
               >
-                {loading ? 'Processing...' : 'Start Payment'}
+                {loading ? (language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...') : language === 'rw' ? 'Tangira Kwishyura' : language === 'fr' ? 'Commencer le paiement' : 'Start Payment'}
               </button>
 
               {paymentSessionId && (
