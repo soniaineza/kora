@@ -22,3 +22,6 @@ export function getAvatarForSeed(seed: string) {
   const safeSeed = String(seed || 'User').trim() || 'User';
   return `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(safeSeed)}`;
 }
+
+
+

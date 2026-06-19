@@ -7,6 +7,12 @@
     {
       "source": "/webhooks/:path*",
       "destination": "https://kora-mihw.onrender.com/webhooks/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
     }
   ]
 }
+
+
