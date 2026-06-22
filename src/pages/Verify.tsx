@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
@@ -11,10 +11,6 @@ function useQuery() {
 }
 
 type PlanKey = string;
-
-const PLAN_REDIRECT_START = 0;
-
-const FREE_TRIAL_HASH = 'quiz';
 
 export function Verify() {
   const q = useQuery();
@@ -35,54 +31,7 @@ export function Verify() {
       ? 'Tegereze akanya gato ko kwishyura kwanyu kwemezwa.'
       : 'Please wait a moment while your payment is being verified.';
 
-  React.useEffect(() => {
-    if (!paymentSessionId || isSuccess) return;
-
-    let intervalId: any;
-    
-          const checkStatus = async () => {
-      try {
-        const token = localStorage.getItem('kora-jwt');
-        if (!token) return;
-
-        const res = await fetch(`${apiBase}/api/internal/active-package?plan=${encodeURIComponent(packageKey)}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        console.log("res=========>", res);
-
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          if (data.active) {
-            setIsSuccess(true);
-            if (intervalId) clearInterval(intervalId);
-          }
-        }
-      } catch (e) {
-        // ignore polling errors
-      }
-    };
-
-
-    intervalId = setInterval(checkStatus, 3000);
-    checkStatus();
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [paymentSessionId, packageKey, apiBase, isSuccess]);
-
-  React.useEffect(() => {
-    if (isSuccess && !loading) {
-      // Auto-continue to exams after a small delay to show the success state
-      const timer = setTimeout(() => {
-        handleContinue();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess]);
-
-  async function handleContinue() {
+  const handleContinue = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -114,7 +63,50 @@ export function Verify() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [apiBase, language, navigate, packageKey]);
+
+  React.useEffect(() => {
+    if (!paymentSessionId || isSuccess) return;
+
+    const checkStatus = async () => {
+      try {
+        const token = localStorage.getItem('kora-jwt');
+        if (!token) return;
+
+        const res = await fetch(`${apiBase}/api/internal/active-package?plan=${encodeURIComponent(packageKey)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.active) {
+            setIsSuccess(true);
+          }
+        }
+      } catch {
+        // Polling will try again on the next interval.
+      }
+    };
+
+    const intervalId = window.setInterval(checkStatus, 3000);
+    checkStatus();
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [paymentSessionId, packageKey, apiBase, isSuccess]);
+
+  React.useEffect(() => {
+    if (isSuccess && !loading) {
+      const timer = window.setTimeout(() => {
+        handleContinue();
+      }, 1500);
+
+      // Cleanup is handled by the return statement below.
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [handleContinue, isSuccess, loading]);
 
   // Demo: simulate success by calling the webhook (ONLY FOR DEMO)
   async function simulateSuccess() {

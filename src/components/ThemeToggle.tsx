@@ -3,14 +3,13 @@ import { Sun, Moon } from 'lucide-react';
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
   useEffect(() => {
+    // Default is LIGHT. If user previously toggled, respect saved preference.
     const stored = localStorage.getItem('kora-theme');
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches;
-    const initial = stored ? stored === 'dark' : prefersDark;
+    const initial = stored ? stored === 'dark' : false;
     setIsDark(initial);
     document.documentElement.classList.toggle('dark', initial);
   }, []);
+
   const toggle = () => {
     const next = !isDark;
     setIsDark(next);

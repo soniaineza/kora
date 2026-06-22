@@ -121,6 +121,7 @@ export function Quiz({
           setExamDurationSeconds(seconds);
         }
       } catch {
+        // Keep the default duration if the session lookup fails.
       }
     })();
 
@@ -130,24 +131,63 @@ export function Quiz({
   }, [sessionId]);
 
   const base = t.quiz.questions;
-  const answers = useMemo(() => {
-    const pattern = [1, 1, 2, 2, 2];
-    return Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => pattern[i % pattern.length]);
-  }, []);
+
+  // Deterministic seeded RNG so each attempt/session has different (but stable) questions.
+  // - Paid attempts: seed by sessionId
+  // - Sample/free trial: seed by a stable timestamp stored in session storage
+  const seedSource = sessionId || (startAtMs ? String(startAtMs) : 'sample');
+
+  // Return a shuffled order deterministically from seedSource.
+  const shuffledOrder = useMemo(() => {
+    // xmur3 hash
+    const str = String(seedSource);
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    // mulberry32 seeded PRNG
+    const mulberry32 = (a0: number) => {
+      let a = a0;
+      return () => {
+        a |= 0;
+        a = (a + 0x6d2b79f5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    };
+
+    // finalize seed
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    const rand = mulberry32(h >>> 0);
+
+    const order = Array.from({ length: TOTAL_QUESTIONS }, (_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return order;
+  }, [seedSource, TOTAL_QUESTIONS]);
 
   const visuals = useMemo(() => {
-    const pattern = [<SpeedSign60 />, undefined, <TriangleWarning />, undefined, undefined];
-    return Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => pattern[i % pattern.length]);
+    const pool = [<SpeedSign60 />, undefined, <TriangleWarning />, undefined, undefined];
+    // shuffled visuals but without repeats by index within the attempt order
+    return pool;
   }, []);
 
-  const questions = useMemo(
-    () =>
-      Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => ({
-        correct: answers[i % answers.length],
-        visual: visuals[i % visuals.length],
-      })),
-    [answers, visuals]
-  );
+  const questions = useMemo(() => {
+    // Use the seeded shuffled order (no repeats) for this attempt.
+    const correctPool = [0, 1, 2, 3];
+
+    return shuffledOrder.map((idx) => {
+      const correct = correctPool[idx % correctPool.length];
+      const visual = visuals[idx % visuals.length];
+      return { correct, visual };
+    });
+  }, [shuffledOrder, visuals]);
 
   const q = questions[current];
   const qText = base[current % base.length];
@@ -262,7 +302,6 @@ export function Quiz({
 
   const submitExamOnce = React.useCallback(async () => {
     if (hasAutoSubmitted) return;
-    if (timeLeftMs !== null && timeLeftMs > 0) return; // only when time is up
 
     setHasAutoSubmitted(true);
 
@@ -304,11 +343,12 @@ export function Quiz({
     } finally {
       try {
         if (storageKey) localStorage.removeItem(storageKey);
-      } catch {}
+      } catch {
+        // Ignore storage cleanup failures.
+      }
     }
   }, [
     hasAutoSubmitted,
-    timeLeftMs,
     sessionId,
     isSample,
     score,
@@ -318,7 +358,7 @@ export function Quiz({
 
   // When time hits 0: finish + submit
   useEffect(() => {
-    if (!timeLeftMs) return;
+    if (timeLeftMs === null) return;
     if (timeLeftMs > 0) return;
     if (finished) return;
 
@@ -474,6 +514,7 @@ export function Quiz({
         localStorage.setItem('kora-sample-taken', '1');
       }
 
+      submitExamOnce();
       return;
     }
     setCurrent((c) => c + 1);

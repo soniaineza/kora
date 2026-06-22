@@ -58,6 +58,9 @@ create table if not exists public.user_packages (
   remaining_attempts integer,
   unlimited boolean not null default false,
 
+  -- Some deployments may have older schema; keep amount field aligned
+  amount_rwf integer, 
+
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -80,11 +83,20 @@ create table if not exists public.exam_sessions (
   plan text not null,
   status text not null default 'active',
   expires_at timestamptz,
+  duration_seconds integer,
+  score integer,
+  total_questions integer,
+  completed_at timestamptz,
   -- optional: bind to which activation gave attempts
   user_package_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.exam_sessions add column if not exists duration_seconds integer;
+alter table public.exam_sessions add column if not exists score integer;
+alter table public.exam_sessions add column if not exists total_questions integer;
+alter table public.exam_sessions add column if not exists completed_at timestamptz;
 
 drop trigger if exists trg_exam_sessions_updated_at on public.exam_sessions;
 create trigger trg_exam_sessions_updated_at

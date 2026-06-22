@@ -269,7 +269,7 @@ export function Exams() {
           </div>
 
           <div className="mt-8">
-            <Quiz totalQuestions={20} isSample={false} sessionId={sessionId || undefined} />
+            <Quiz totalQuestions={20} isSample={false} sessionId={sessionId || undefined} plan={plan} />
           </div>
         </div>
       </section>

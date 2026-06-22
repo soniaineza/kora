@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Phone, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import { getApiBase } from '../lib/api';
 type Step = 'enter' | 'verify';
 function normalizePhone(raw: string) {
   return String(raw || '').replace(/\D/g, '');
@@ -28,13 +29,7 @@ export function Register() {
     return p.length >= 9 && password6.length === 6 && /^\d{6}$/.test(password6);
   }, [phone, password6]);
 
-  const API = (import.meta as any).env?.VITE_API_BASE as string | undefined;
-
-  // Hosted fallback: use same-origin. Also normalize to avoid double // when building URLs.
-  const apiBase = (API || window.location.origin).replace(/\/$/, '');
-
-
-
+  const apiBase = getApiBase();
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +48,7 @@ export function Register() {
         throw new Error(language === 'rw' ? 'Ijambo ry\u2019ibanga rigomba kuba imibare 6 gusa.' : 'Password must be exactly 6 digits.');
       }
 
-      const res = await fetch(`${apiBase}/api/otp/send`.replace(/\/\/+/g, '/'), {
+      const res = await fetch(`${apiBase}/api/otp/send`, {
 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,7 +74,7 @@ export function Register() {
     try {
       const p = normalizePhone(phone);
 
-      const res = await fetch(`${apiBase}/api/otp/verify`.replace(/\/\/+/g, '/'), {
+      const res = await fetch(`${apiBase}/api/otp/verify`, {
 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -245,4 +240,3 @@ export function Register() {
 function languageText(_: any, fallback: string) {
   return fallback;
 }
-

@@ -1,5 +1,6 @@
 export function getApiBase() {
-  return (import.meta as any).env?.VITE_API_BASE as string;
+  const envBase = import.meta.env?.VITE_API_BASE as string | undefined;
+  return (envBase || window.location.origin).replace(/\/$/, '');
 }
 
 

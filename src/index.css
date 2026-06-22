@@ -67,8 +67,11 @@ body {
       radial-gradient(900px circle at 100% 20%, color-mix(in oklch, var(--accent) 12%, transparent) 0%, transparent 55%);
   }
 
-  /* Force default light mode by removing the `.dark` dependency unless user toggles it */
+  /* Force default light mode: ensure `.dark` is not set by default.
+     ThemeToggle can still add/remove it based on user action. */
+  html { color-scheme: light; }
   html:not(.dark) { }
+
 
 
   /* Smooth motion defaults (reusable glass/neomorph feel) */

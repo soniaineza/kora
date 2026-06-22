@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Phone, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import { getApiBase } from '../lib/api';
 
 type Step = 'enter' | 'verify';
 
@@ -13,12 +14,7 @@ export function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const API = (import.meta as any).env?.VITE_API_BASE as string | undefined;
-  if (!API) {
-    throw new Error('Missing VITE_API_BASE environment variable');
-  }
-
-
+  const apiBase = getApiBase();
 
   const [step, setStep] = useState<Step>('enter');
   const [phone, setPhone] = useState('');
@@ -33,7 +29,7 @@ export function Login() {
     setError(null);
     setSending(true);
     try {
-      const apiRes = await fetch(`${API}/api/otp/send`, {
+      const apiRes = await fetch(`${apiBase}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: normalizePhone(phone) }),
@@ -55,7 +51,7 @@ export function Login() {
     setError(null);
     setVerifying(true);
     try {
-      const apiRes = await fetch(`${API}/api/otp/verify`, {
+      const apiRes = await fetch(`${apiBase}/api/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: normalizePhone(phone), code }),
@@ -179,4 +175,3 @@ export function Login() {
     </section>
   );
 }
-
