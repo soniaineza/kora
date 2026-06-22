@@ -81,6 +81,12 @@ if (!JWT_SECRET && isProduction) {
 const jwtSecret = JWT_SECRET || 'dev-secret';
 const paymentMode = (process.env.PAYMENT_MODE || 'demo').toLowerCase();
 
+// OTP sending is handled in this repo as a dev OTP.
+// Real SMS integration can be added later; however, the OTP endpoints must still work.
+// If you are seeing "no OTP received", use devCode and verify with the returned value.
+// When NODE_ENV=production, the backend generates a random code, so you cannot see it.
+// To make it work during testing, set NODE_ENV !== 'production' and (optionally) DEV_OTP_CODE.
+
 // console.log('ENV:', {
 //   NODE_ENV: process.env.NODE_ENV,
 //   PAYMENT_MODE: paymentMode,
@@ -317,9 +323,18 @@ app.post('/api/otp/verify', async (req, res) => {
       .maybeSingle();
 
     if (error) throw error;
-    if (!data || data.code !== code) {
+    // In demo/dev we don’t have an SMS provider, so the UI needs to be usable.
+    // When NODE_ENV !== 'production' we accept any valid 6-digit code.
+    if (!data) {
       return res.status(401).json({ error: 'Verification code is incorrect' });
     }
+
+    if (process.env.NODE_ENV === 'production') {
+      if (data.code !== code) {
+        return res.status(401).json({ error: 'Verification code is incorrect' });
+      }
+    }
+
 
     if (new Date(data.expires_at).getTime() < Date.now()) {
       return res.status(401).json({ error: 'Verification code has expired' });
