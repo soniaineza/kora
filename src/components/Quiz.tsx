@@ -189,6 +189,7 @@ export function Quiz({
     });
   }, [shuffledOrder, visuals]);
 
+
   const q = questions[current];
   const qText = base[current % base.length];
   useEffect(() => {
