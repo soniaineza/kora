@@ -82,20 +82,20 @@ export function Exams() {
       <section className="bg-background py-16">
         <div className="max-w-2xl mx-auto px-6">
           <div className="rounded-3xl border border-border bg-background p-8">
-            <h2 className="text-xl font-heading font-extrabold text-foreground mb-3">Access denied</h2>
+            <h2 className="text-xl font-heading font-extrabold text-foreground mb-3">{t.exams.accessDenied}</h2>
             <p className="text-sm text-muted-foreground">{guard.reason}</p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <Link
                 className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
                 to="/register"
               >
-                Register
+                {t.exams.register}
               </Link>
               <Link
                 className="rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground"
                 to="/packages"
               >
-                Choose package
+                {t.exams.choosePackage}
               </Link>
             </div>
           </div>
@@ -158,7 +158,7 @@ export function Exams() {
       return (
         <section className="bg-background py-12">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="text-muted-foreground">Loading session…</div>
+            <div className="text-muted-foreground">{t.exams.loadingSession}</div>
           </div>
         </section>
       );
@@ -169,20 +169,20 @@ export function Exams() {
         <section className="bg-background py-16">
           <div className="max-w-2xl mx-auto px-6">
             <div className="rounded-3xl border border-border bg-background p-8">
-              <h2 className="text-xl font-heading font-extrabold text-foreground mb-3">Session not valid</h2>
+              <h2 className="text-xl font-heading font-extrabold text-foreground mb-3">{t.exams.sessionNotValid}</h2>
               <p className="text-sm text-muted-foreground">{sessionGuard.reason}</p>
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Link
                   className="rounded-full border border-border bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
                   to="/packages"
                 >
-                  Buy / Choose package
+                  {t.exams.buyOrChoosePackage}
                 </Link>
                 <Link
                   className="rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground"
                   to={`/exams?plan=${encodeURIComponent(plan)}&start=0`}
                 >
-                  Go back
+                  {t.exams.goBack}
                 </Link>
               </div>
             </div>
@@ -216,7 +216,7 @@ export function Exams() {
                 {/* Left */}
                 <div className="text-left">
                   <div className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    {plan} Plan
+                    {plan} {t.exams.package}
                   </div>
 
                   <p className="text-sm text-muted-foreground mt-5">{t.exams.packageSummary}</p>
@@ -225,16 +225,16 @@ export function Exams() {
                   </h2>
 
                   <p className="mt-3 text-muted-foreground max-w-xl">
-                    {t.exams.examSubtitle.replace('{count}', p.exams === 999999 ? 'Unlimited' : p.exams.toString())}
+                    {t.exams.examSubtitle.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}
                   </p>
 
                   {guard.remaining != null && (
                     <div className="mt-5 flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center rounded-full bg-muted/70 px-3 py-1 text-xs font-semibold text-foreground">
-                        {guard.remaining === 999999 ? 'Unlimited attempts' : `Remaining attempts: ${guard.remaining}`}
+                        {guard.remaining === 999999 ? t.exams.unlimited : `${t.exams.remainingAttempts} ${guard.remaining}`}
                       </span>
                       <span className="inline-flex items-center rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                        Pass mark: 12 / 20
+                        {t.exams.passMark}
                       </span>
                     </div>
                   )}
@@ -244,9 +244,9 @@ export function Exams() {
                 <div className="rounded-[1.5rem] border border-border/70 bg-background/50 p-5 backdrop-blur">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Exam length</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t.exams.examLength}</p>
                       <p className="mt-2 text-3xl font-heading font-extrabold text-foreground">20</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Questions</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t.exams.questions}</p>
                     </div>
                     <div className="hidden sm:block">
                       <div className="h-14 w-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -258,9 +258,9 @@ export function Exams() {
                   <div className="mt-5 h-px bg-border/60" />
 
                   <div className="mt-5">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Ready when you are</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t.exams.readyWhenYouAre}</p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Complete each 20-question exam and aim for at least 12 correct answers to pass.
+                      {t.exams.description}
                     </p>
                   </div>
                 </div>
@@ -279,41 +279,40 @@ export function Exams() {
 
   return (
     <>
-      <PageHeader title={`Exams — ${plan}`} subtitle={`Includes ${p.exams} exam attempts`} />
+      <PageHeader title={`${t.exams.examTitle} — ${plan}`} subtitle={`${t.exams.packageSummary.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}`} />
       {!start ? (
         <section className="bg-background py-16">
           <div className="max-w-4xl mx-auto px-6">
             <div className="overflow-hidden rounded-[2rem] border border-border bg-background shadow-xl shadow-foreground/5">
               <div className="bg-primary/5 px-8 py-8 sm:px-10 sm:py-10">
-                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary/80">Selected package</p>
-                <h2 className="mt-3 text-3xl font-heading font-extrabold text-foreground">{plan} plan</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary/80">{t.exams.selectedPackage}</p>
+                <h2 className="mt-3 text-3xl font-heading font-extrabold text-foreground">{plan} {t.exams.package?.toLowerCase?.() || 'plan'}</h2>
                 <p className="mt-3 text-muted-foreground max-w-2xl">
-                  You’re ready to begin full exam practice with {p.exams} exam attempts. Each exam includes 20 questions and
-                  a 12/20 pass mark.
+                  {t.exams.packageSummary.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}
                 </p>
               </div>
 
               <div className="px-6 py-8 sm:px-8 sm:py-10">
                 <div className="grid gap-4 sm:grid-cols-3 mb-8">
                   <div className="rounded-3xl border border-border bg-background p-5">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Package</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t.exams.package}</p>
                     <p className="mt-3 text-lg font-semibold text-foreground">{plan}</p>
                   </div>
                   <div className="rounded-3xl border border-border bg-background p-5">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Price</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t.exams.price}</p>
                     <p className="mt-3 text-lg font-semibold text-foreground">{p.price}</p>
                   </div>
                   <div className="rounded-3xl border border-border bg-background p-5">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Attempts</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t.exams.attempts}</p>
                     <p className="mt-3 text-lg font-semibold text-foreground">{p.exams}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4 text-sm text-foreground/90 leading-relaxed mb-8">
-                  <p className="font-semibold">Note:</p>
-                  <p>This full exam starts a <span className="font-bold">20-minute countdown</span> automatically after you press <span className="font-bold">Start Exam</span>.</p>
-                  <p>Complete each 20-question exam and aim for at least 12 correct answers to pass.</p>
-                  <p>Need a quick review before you begin? Read the library for traffic signs and road rules.</p>
+                  <p className="font-semibold">{t.exams.note}</p>
+                  <p>{t.exams.instruction1}</p>
+                  <p>{t.exams.instruction2}</p>
+                  <p>{t.exams.instruction3}</p>
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row">
@@ -383,14 +382,14 @@ export function Exams() {
                     }}
                     className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90"
                   >
-                    Start Exam
+                    {t.exams.startExam}
                   </Link>
 
                   <Link
                     to="/library"
                     className="inline-flex items-center justify-center rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30"
                   >
-                    Read the Library
+                    {t.exams.readLibrary}
                   </Link>
                 </div>
               </div>

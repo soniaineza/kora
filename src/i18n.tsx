@@ -14,7 +14,9 @@ const translations = {
       start: 'Start Free Test',
       toggleMenu: 'Toggle menu',
       language: 'Language',
-      library: 'Library'
+      library: 'Library',
+      createAccount: 'Create account',
+      logout: 'Logout'
     },
     auth: {
       loginTitle: 'Welcome back',
@@ -38,7 +40,22 @@ const translations = {
       loginSuccess: 'Successfully signed in.',
       alreadyHaveAccount: 'Already have an account?',
       termsNotice: 'By signing up, you agree to our',
-      and: 'and'
+      and: 'and',
+      phoneLabel: 'Phone',
+      verificationCode: 'Verification Code',
+      verificationPlaceholder: '123456',
+      verificationHelper: 'Enter the 6-digit code sent to your phone.',
+      sendCode: 'Send Login Code',
+      sendingCode: 'Sending Code...',
+      verifyAndLogin: 'Verify & Login',
+      verifyAndContinue: 'Verify & Continue',
+      verifying: 'Verifying...',
+      backToLogin: 'Back to login',
+      backToRegistration: 'Back to registration',
+      passwordHelper: 'Your password must be exactly 6 digits.',
+      creating: 'Creating...',
+      loginLink: 'Login',
+      fullNameLabel: 'Full name'
     },
     packages: {
       title: 'Choose the package that fits your practice needs',
@@ -67,7 +84,12 @@ const translations = {
         questionTime: '02:41',
         optionA: 'A. 40 km/h',
         optionB: 'B. 60 km/h',
-        optionC: 'C. 80 km/h'
+        optionC: 'C. 80 km/h',
+        license: 'Licence',
+        licenseProvisoire: 'Provisoire',
+        holdingProvisoire: 'Holding her provisoire',
+        happyNewDriver: 'Happy new driver',
+        altHappyWoman: 'Happy Black woman holding a provisional license card'
       }
     },
     how: {
@@ -149,6 +171,10 @@ const translations = {
       keepGoing: "Don't worry - that's exactly what Kora is for. Practice more to improve.",
       tryAgain: 'Try Again',
       fullAccess: 'Get Full Access',
+      percentage: 'Percentage',
+      loading: 'Loading...',
+      startTimer: 'Start Timer',
+      startLearning: 'Start Learning',
       questions: [
         {
           prompt: 'What is the maximum speed limit in a built-up residential area?',
@@ -193,13 +219,127 @@ const translations = {
           category: 'Traffic Laws',
           options: ['0.08 g/L', '0.05 g/L', '0.02 g/L', 'Zero tolerance'],
           explanation: 'The legal blood alcohol limit for drivers in Rwanda is 0.02 g/L. Always drive sober.'
+        },
+        {
+          prompt: 'What does a solid white line on the edge of the road mean?',
+          category: 'Road Markings',
+          options: ['You may cross it', 'No parking zone', 'Edge of the roadway — do not cross', 'Cycle lane'],
+          explanation: 'A solid white line at the edge marks the boundary of the roadway. You should not drive beyond it.'
+        },
+        {
+          prompt: 'When are you allowed to overtake on the left?',
+          category: 'Overtaking',
+          options: ['Never', 'When the vehicle ahead is turning right', 'On a one-way street', 'In a residential area'],
+          explanation: 'You may only overtake on the left when the vehicle ahead is signalling to turn right.'
+        },
+        {
+          prompt: 'What does a blue circular sign with a white arrow mean?',
+          category: 'Mandatory Signs',
+          options: ['One-way street', 'Mandatory direction — you must go this way', 'Recommended route', 'No entry'],
+          explanation: 'A blue circle with a white arrow is a mandatory sign indicating the direction you must follow.'
+        },
+        {
+          prompt: 'What should you do when emergency vehicle with flashing lights approaches from behind?',
+          category: 'Emergency',
+          options: ['Speed up', 'Stop immediately', 'Pull over to the side and let it pass', 'Flash your hazard lights'],
+          explanation: 'When an emergency vehicle approaches with flashing lights, you must pull over safely and allow it to pass.'
+        },
+        {
+          prompt: 'What is the minimum age to obtain a provisional driving license in Rwanda?',
+          category: 'Licensing',
+          options: ['16 years', '18 years', '21 years', '15 years'],
+          explanation: 'The minimum age to apply for a provisional driving license in Rwanda is 18 years.'
+        },
+        {
+          prompt: 'What does a red circle with a white horizontal bar mean?',
+          category: 'Prohibition Signs',
+          options: ['No parking', 'No entry — do not proceed', 'Stop', 'Speed limit ends'],
+          explanation: 'A red circle with a white horizontal bar means "No entry" — you cannot enter this road from that direction.'
+        },
+        {
+          prompt: 'When driving at night, when should you use your high beam headlights?',
+          category: 'Night Driving',
+          options: ['Always in the city', 'On unlit roads with no oncoming traffic', 'Never', 'In heavy fog'],
+          explanation: 'Use high beams on unlit roads when there is no oncoming traffic. Dip them when another vehicle approaches.'
+        },
+        {
+          prompt: 'What does a flashing yellow traffic light mean?',
+          category: 'Traffic Signals',
+          options: ['Stop and wait for green', 'Proceed with caution', 'Speed up to clear the intersection', 'Prepare to stop'],
+          explanation: 'A flashing yellow light means proceed with caution — check for other vehicles before crossing.'
+        },
+        {
+          prompt: 'What should you do if you miss your intended exit on a highway?',
+          category: 'Driving Safety',
+          options: ['Reverse back to the exit', 'Make a U-turn', 'Continue to the next exit', 'Stop on the shoulder'],
+          explanation: 'If you miss your exit, never reverse or U-turn. Continue to the next exit and turn around safely.'
+        },
+        {
+          prompt: 'What does a yellow diamond-shaped sign indicate?',
+          category: 'Warning Signs',
+          options: ['End of speed limit', 'Warning of potential hazard ahead', 'Mandatory action', 'No stopping'],
+          explanation: 'A yellow diamond-shaped sign warns of a potential hazard ahead on the roadway.'
+        },
+        {
+          prompt: 'How close can you park to a pedestrian crossing?',
+          category: 'Parking Rules',
+          options: ['5 metres', '10 metres', '15 metres', '20 metres'],
+          explanation: 'You must not park within 10 metres of a pedestrian crossing to ensure clear visibility.'
+        },
+        {
+          prompt: 'What does a white rectangular sign with black text indicate?',
+          category: 'Information Signs',
+          options: ['Regulatory requirement', 'Local traffic rule', 'Direction or distance information', 'Prohibition'],
+          explanation: 'White rectangular signs with black text provide information such as directions or distances.'
+        },
+        {
+          prompt: 'What should you do before reversing your vehicle?',
+          category: 'Basic Manoeuvres',
+          options: ['Sound the horn', 'Check mirrors and blind spots', 'Turn on hazard lights', 'Shift to neutral'],
+          explanation: 'Before reversing, always check your mirrors and blind spots for pedestrians or obstacles.'
+        },
+        {
+          prompt: 'What is the maximum speed on a highway in Rwanda?',
+          category: 'Speed Limits',
+          options: ['60 km/h', '80 km/h', '100 km/h', '120 km/h'],
+          explanation: 'The maximum speed on Rwandan highways is 100 km/h unless otherwise posted.'
+        },
+        {
+          prompt: 'When must you stop at a railway crossing?',
+          category: 'Railway Crossings',
+          options: ['Only if a train is coming', 'When lights are flashing or barrier is down', 'Never — just slow down', 'Only at night'],
+          explanation: 'You must come to a complete stop when the warning lights are flashing, the barrier is lowered, or a signal indicates a train is approaching.'
         }
       ]
     },
     exams: {
       packageSummary: 'Your selected package includes {count} exam attempts.',
       examTitle: 'Your Exam Session',
-      examSubtitle: 'Complete each 20-question test with a 12/20 pass mark. You purchased {count} attempts.'
+      examSubtitle: 'Complete each 20-question test with a 12/20 pass mark. You purchased {count} attempts.',
+      accessDenied: 'Access denied',
+      register: 'Register',
+      choosePackage: 'Choose package',
+      loadingSession: 'Loading session...',
+      sessionNotValid: 'Session not valid',
+      buyOrChoosePackage: 'Buy / Choose package',
+      goBack: 'Go back',
+      selectedPackage: 'Selected package',
+      package: 'Package',
+      price: 'Price',
+      attempts: 'Attempts',
+      note: 'Note:',
+      instruction1: 'This full exam starts a 20-minute countdown automatically after you press Start Exam.',
+      instruction2: 'Complete each 20-question exam and aim for at least 12 correct answers to pass.',
+      instruction3: 'Need a quick review before you begin? Read the library for traffic signs and road rules.',
+      startExam: 'Start Exam',
+      readLibrary: 'Read the Library',
+      unlimited: 'Unlimited',
+      remainingAttempts: 'Remaining attempts:',
+      passMark: 'Pass mark: 12 / 20',
+      examLength: 'Exam length',
+      questions: 'Questions',
+      readyWhenYouAre: 'Ready when you are',
+      description: 'Complete each 20-question exam and aim for at least 12 correct answers to pass.'
     },
     pricing: {
       title: 'Ready to pass?',
@@ -250,6 +390,10 @@ const translations = {
       terms: 'Terms',
       privacy: 'Privacy',
       contact: 'Contact'
+    },
+    theme: {
+      toggleLight: 'Switch to light mode',
+      toggleDark: 'Switch to dark mode'
     }
   },
   rw: {
@@ -262,7 +406,9 @@ const translations = {
       start: 'Tangira ikizamini cy\'ubuntu',
       toggleMenu: 'Fungura cyangwa funga menu',
       language: 'Ururimi',
-      library: 'Ibitabo'
+      library: 'Ibitabo',
+      createAccount: 'Fungura konti',
+      logout: 'Sohoka'
     },
     auth: {
       loginTitle: 'Mwongere muri Kora',
@@ -286,7 +432,22 @@ const translations = {
       loginSuccess: 'Winjiye neza.',
       alreadyHaveAccount: 'Ufite konti?',
       termsNotice: 'Iyo wiyandikishije wemera',
-      and: 'na'
+      and: 'na',
+      phoneLabel: 'Nimero ya telefone',
+      verificationCode: 'Kode yo kwemeza',
+      verificationPlaceholder: '123456',
+      verificationHelper: 'Shyiramo kode y\'imibare 6 wakiriye kuri telefone yawe.',
+      sendCode: 'Ohereza kode yo kwinjira',
+      sendingCode: 'Ohereza kode...',
+      verifyAndLogin: 'Kwemeza no kwinjira',
+      verifyAndContinue: 'Kwemeza ukomeze',
+      verifying: 'Bikorwa...',
+      backToLogin: 'Subira mu kwinjira',
+      backToRegistration: 'Subira mu kwiyandikisha',
+      passwordHelper: 'Ijambo ry\'ibanga rigomba kuba imibare 6 gusa.',
+      creating: 'Gufungura konti...',
+      loginLink: 'Injira',
+      fullNameLabel: 'Amazina yose'
     },
     packages: {
       title: 'Hitamo paketi ikubereye',
@@ -308,7 +469,20 @@ const translations = {
       thisMonth: 'uku kwezi',
       phoneQuestion: 'Umuvuduko ntarengwa mu gace gatuwe ni uwuhe?',
       questionCount: 'IKIBAZO 14 / 20',
-      passRate: 'ABATSINDA'
+      passRate: 'ABATSINDA',
+      provisoireSubtitle: 'Provisoire — imodoka & moto',
+      mock: {
+        statusTime: '9:41',
+        questionTime: '02:41',
+        optionA: 'A. 40 km/h',
+        optionB: 'B. 60 km/h',
+        optionC: 'C. 80 km/h',
+        license: 'Ifishi',
+        licenseProvisoire: 'Provisoire',
+        holdingProvisoire: 'Afite provisoire ye',
+        happyNewDriver: 'Umunyeshuri wishimye',
+        altHappyWoman: 'Umunyafurika w\'umugore wishimye afite kariya ya provisoire'
+      }
     },
     how: {
       eyebrow: 'UKO BIKORA',
@@ -389,6 +563,10 @@ const translations = {
       keepGoing: 'Ntugire ikibazo - ni cyo Kora igufasha. Komeza imyitozo.',
       tryAgain: 'Ongera ugerageze',
       fullAccess: 'Fungura byose',
+      percentage: 'Ijanisha',
+      loading: 'Bikorwa...',
+      startTimer: 'Tangira igihe',
+      startLearning: 'Tangira kwiga',
       questions: [
         {
           prompt: 'Umuvuduko ntarengwa mu gace gatuwe ni uwuhe?',
@@ -419,13 +597,127 @@ const translations = {
           category: 'Amategeko y\'umuhanda',
           options: ['0.08 g/L', '0.05 g/L', '0.02 g/L', 'Nta nzoga na mba'],
           explanation: 'Igipimo cyemewe mu Rwanda ni 0.02 g/L. Buri gihe twara udasinze.'
+        },
+        {
+          prompt: 'Umurongo wera ukomeye uri mu nkengero z\'umuhanda usobanura?',
+          category: 'Ibyapa byo ku muhanda',
+          options: ['Urashobora kuwambuka', 'Ahantu hatabishyirwamo imodoka', 'Inkengero z\'umuhanda - ntukambuke', 'Umuhanda w\'amagare'],
+          explanation: 'Umurongo wera ku nkengero z\'umuhanda werekana aho umuhanda urangirira. Ntugomba gutambuka.'
+        },
+        {
+          prompt: 'Ni ryari wemerewe kurenga ibumoso?',
+          category: 'Kurenga',
+          options: ['Ntabwo', 'Iyo imodoka iri imbere igarukira iburyo', 'Mu muhanda w\'urugendo rumwe', 'Mu gace gatuwe'],
+          explanation: 'Ushobora kurenga ibumoso iyo imodoka iri imbere yerekanaga kugarukira iburyo.'
+        },
+        {
+          prompt: 'Icyapa cy\'ubururu gifite umwambi wera gisobanura iki?',
+          category: 'Ibyapa biteganyijwe',
+          options: ['Umuhanda w\'urugendo rumwe', 'Urenga aha - ugomba kunyura inzira yerekanywe', 'Inzira iteganijwe', 'Nta kwinjira'],
+          explanation: 'Uruziga rw\'ubururu rufite umwambi wera ni ikimenyetso kiguhana inzira ugomba gukurikira.'
+        },
+        {
+          prompt: 'Bigenzi iki iyo imodoka y\'itumanaho iri inyuma yanje irimo kumurika?',
+          category: 'Itumanaho',
+          options: ['Kwihuta', 'Guhagarara ako kanya', 'Kureka inzira ukayirekera', 'Gukoresha amatara y\'ibura'],
+          explanation: 'Iyo imodoka y\'itumanaho igeze inyuma irimo kumurika, ugomba kuyirekera umuhanda.'
+        },
+        {
+          prompt: 'Iminsi y\'amavuko ikeje wewe kubona perimi provisoire mu Rwanda?',
+          category: 'Gutanga perimi',
+          options: ['imyaka 16', 'imyaka 18', 'imyaka 21', 'imyaka 15'],
+          explanation: 'Imyaka y\'amavuko igomba kugira ngo ubone perimi provisoire mu Rwanda ni imyaka 18.'
+        },
+        {
+          prompt: 'Icyapa gitukura gifite umurongo wera utambitse gisobanura iki?',
+          category: 'Ibyapa bibujijwe',
+          options: ['Ntibishyirwamo imodoka', 'Nta kwinjira - ntukomeze', 'Hagarara', 'Umuvuduko urangiye'],
+          explanation: 'Uruziga rutukura rufite umurongo wera usobanura ko nta winjira — ntabwo wemerewe kwinjira muri uwo muhanda.'
+        },
+        {
+          prompt: 'Iyo utwaye nijoro, ni ryari ugomba gukoresha amatara arekura?',
+          category: 'Kutwara nijoro',
+          options: ['Buri gihe mu mujyi', 'Ku mihanda idafite amatara nta modoka ikurikiye', 'Ntabwo', 'Mu kifu gikomeye'],
+          explanation: 'Koresha amatara arekura ku mihanda idafite amatara nta modoka ikurikiye. Umanure iyo modoka igeze.'
+        },
+        {
+          prompt: 'Amatara y\'umuhanga y\'umuhondo abaka abaka asobanura iki?',
+          category: 'Amatara y\'umuhanda',
+          options: ['Hagarara utegereze icyatsi', 'Komeza witonze', 'Wihute kugirango unyure', 'Tegura guhagarara'],
+          explanation: 'Amatara y\'umuhondo abaka abaka asobanura komeza witonze — reba ko nta modoka mbere y\'ukunyura.'
+        },
+        {
+          prompt: 'Bigenzi iki iyo wakozwe n\'umuhanda uri mu nzira nyamukuru?',
+          category: 'Umutekano',
+          options: ['Subira inyuma kuri exit', 'Kora U-turn', 'Komeza kugera kuri exit ikurikira', 'Hagarara ku rutibi'],
+          explanation: 'Iyo wakozwe n\'exit yawe, ntukore reverse cyangwa U-turn. Komeza kugera kuri exit ikurikira.'
+        },
+        {
+          prompt: 'Icyapa cy\'umuhondo gifishije uruhu rw\'ipfundo risa nka diamondi gisobanura iki?',
+          category: 'Ibyapa biburira',
+          options: ['Umuvuduko urangiye', 'Iburira ry\'ibyago biri imbere', 'Igikorwa gitegetswe', 'Ntihahagararwa'],
+          explanation: 'Icyapa cy\'umuhondo gifite ishusho ya diamondi kiburira umushoferi ibyago biri imbere.'
+        },
+        {
+          prompt: 'Ugomba guhagarara intera ingana iki uvuye aho abanyamaguru bambukira?',
+          category: 'Guhagarika imodoka',
+          options: ['5 metres', '10 metres', '15 metres', '20 metres'],
+          explanation: 'Ntugomba guhagarika imodoka hafi ya metero 10 uvuye aho abanyamaguru bambukira kugirango habe uruhu rw\'irebero.'
+        },
+        {
+          prompt: 'Icyapa cy\'umweru gifite inyandiko yirabura gisobanura iki?',
+          category: 'Ibyapa by\'amakuru',
+          options: ['Itegeko', 'Amategeko y\'agace', 'Akarere cyangwa intera', 'Icabujijwe'],
+          explanation: 'Ibyapa by\'umweru bifite inyandiko yirabura bitanga amakuru nk\'akarere cyangwa intera.'
+        },
+        {
+          prompt: 'Bigenzi iki mbere yo gusubira inyuma n\'imodoka?',
+          category: 'Gutwara imodoka',
+          options: ['Vuza ihoni', 'Reba indorerwamo n\'ahantu utabona', 'Koresha amatara y\'ibura', 'Shyira muri neutral'],
+          explanation: 'Mbere yo gusubira inyuma, reba indorerwamo n\'ahantu utabona kugirango urebe abantu cyangwa ibintu.'
+        },
+        {
+          prompt: 'Umuvuduko ntarengwa mu Rwanda ku muhanda mwinshi ni uwuhe?',
+          category: 'Umuvuduko',
+          options: ['60 km/h', '80 km/h', '100 km/h', '120 km/h'],
+          explanation: 'Umuvuduko ntarengwa ku mihanda minini mu Rwanda ni 100 km/h keretse icyapa kikavuze ukundi.'
+        },
+        {
+          prompt: 'Ni ryari ugomba guhagarara ku nzira y\'igari ya moshi?',
+          category: 'Inzira y\'igari ya moshi',
+          options: ['Iyo hari igari riza gusa', 'Iyo amatara abaka cyangwa urugi ruri hasi', 'Ntabwo - gabanya umuvuduko gusa', 'Nijoro gusa'],
+          explanation: 'Ugomba guhagarara buri gihe iyo amatara y\'iburira abaka, urugi ruri hasi, cyangwa ikimenyetso kigaragaza ko igari riza.'
         }
       ]
     },
     exams: {
       packageSummary: 'Paketi wahisemo irimo ibyo kugerageza {count}.',
       examTitle: 'Ikizamini cyawe',
-      examSubtitle: 'Kurikirana buri kizamini cyibazwa ibibazo 20, ugomba gutsinda 12/20. Wahisemo {count}.'
+      examSubtitle: 'Kurikirana buri kizamini cyibazwa ibibazo 20, ugomba gutsinda 12/20. Wahisemo {count}.',
+      accessDenied: 'Ntibyemewe',
+      register: 'Iyandikishe',
+      choosePackage: 'Hitamo paketi',
+      loadingSession: 'Bikorwa...',
+      sessionNotValid: 'Sesiyo ntiyemewe',
+      buyOrChoosePackage: 'Gura / Hitamo paketi',
+      goBack: 'Subira inyuma',
+      selectedPackage: 'Paketi yahisemo',
+      package: 'Paketi',
+      price: 'Igiciro',
+      attempts: 'Ugeragezo',
+      note: 'Icyitonderwa:',
+      instruction1: 'Iki kizamini gitangira kubara igihe cy\'iminota 20 nyuma yo kugona "Tangira Ikizamini".',
+      instruction2: 'Kurikiranya buri kizamini cyibazwa 20, ugomba gutsinda byibura 12 kugirango utsinde.',
+      instruction3: 'Ukeneye gusubiramo mbere yo gutangira? Soma ibitabo by\'ibyapa by\'umuhanda n\'amategeko.',
+      startExam: 'Tangira Ikizamini',
+      readLibrary: 'Soma Ibitabo',
+      unlimited: 'Ugeragezo rudahagira',
+      remainingAttempts: 'Ugeragezo usigariwe:',
+      passMark: 'Pass mark: 12 / 20',
+      examLength: 'Uburebure bw\'ikizamini',
+      questions: 'Ibibazo',
+      readyWhenYouAre: 'Uteguye',
+      description: 'Kurikiranya buri kizamini cyibazwa 20, ugomba gutsinda byibura 12 kugirango utsinde.'
     },
     pricing: {
       title: 'Witeguye gutsinda?',
@@ -475,6 +767,10 @@ const translations = {
       terms: 'Amategeko',
       privacy: 'Ibanga',
       contact: 'Twandikire'
+    },
+    theme: {
+      toggleLight: 'Hindura ubutare',
+      toggleDark: 'Hindura umwijima'
     }
   },
   fr: {
@@ -488,7 +784,9 @@ const translations = {
       start: 'Test gratuit',
       toggleMenu: 'Ouvrir ou fermer le menu',
       language: 'Langue',
-      library: 'Bibliothèque'
+      library: 'Bibliothèque',
+      createAccount: 'Créer un compte',
+      logout: 'Déconnexion'
     },
     auth: {
       loginTitle: 'Bienvenue',
@@ -512,7 +810,22 @@ const translations = {
       loginSuccess: 'Connecté avec succès.',
       alreadyHaveAccount: 'Déjà un compte?',
       termsNotice: 'En vous inscrivant, vous acceptez',
-      and: 'et'
+      and: 'et',
+      phoneLabel: 'Téléphone',
+      verificationCode: 'Code de vérification',
+      verificationPlaceholder: '123456',
+      verificationHelper: 'Entrez le code à 6 chiffres reçu par SMS.',
+      sendCode: 'Envoyer le code',
+      sendingCode: 'Envoi...',
+      verifyAndLogin: 'Vérifier et connecter',
+      verifyAndContinue: 'Vérifier et continuer',
+      verifying: 'Vérification...',
+      backToLogin: 'Retour',
+      backToRegistration: 'Retour',
+      passwordHelper: 'Le mot de passe doit comporter exactement 6 chiffres.',
+      creating: 'Création...',
+      loginLink: 'Connexion',
+      fullNameLabel: 'Nom complet'
     },
     packages: {
       title: 'Choisissez le forfait qui vous convient',
@@ -534,7 +847,20 @@ const translations = {
       thisMonth: 'ce mois-ci',
       phoneQuestion: 'Quelle est la vitesse maximale dans une zone résidentielle?',
       questionCount: 'QUESTION 14 / 20',
-      passRate: 'REUSSITE'
+      passRate: 'REUSSITE',
+      provisoireSubtitle: 'Provisoire — voitures & motos',
+      mock: {
+        statusTime: '9:41',
+        questionTime: '02:41',
+        optionA: 'A. 40 km/h',
+        optionB: 'B. 60 km/h',
+        optionC: 'C. 80 km/h',
+        license: 'Permis',
+        licenseProvisoire: 'Provisoire',
+        holdingProvisoire: 'Tenant sa provisoire',
+        happyNewDriver: 'Nouveau conducteur',
+        altHappyWoman: 'Femme noire heureuse tenant sa carte de permis provisoire'
+      }
     },
     how: {
       eyebrow: 'FONCTIONNEMENT',
@@ -614,6 +940,10 @@ const translations = {
       keepGoing: 'Pas d\'inquiétude - c\'est exactement le rôle de Kora. Continuez à vous entraîner.',
       tryAgain: 'Réessayer',
       fullAccess: 'Accès complet',
+      percentage: 'Pourcentage',
+      loading: 'Chargement...',
+      startTimer: 'Démarrer le chronomètre',
+      startLearning: 'Commencer à apprendre',
       questions: [
         {
           prompt: 'Quelle est la vitesse maximale dans une zone résidentielle?',
@@ -644,13 +974,127 @@ const translations = {
           category: 'Code de la route',
           options: ['0.08 g/L', '0.05 g/L', '0.02 g/L', 'Tolérance zéro'],
           explanation: 'La limite légale au Rwanda est de 0.02 g/L. Conduisez toujours sobre.'
+        },
+        {
+          prompt: 'Que signifie une ligne blanche continue sur le bord de la route?',
+          category: 'Marquages routiers',
+          options: ['Vous pouvez la franchir', 'Zone de stationnement interdit', 'Limite de la chaussée — ne pas franchir', 'Piste cyclable'],
+          explanation: 'Une ligne blanche continue marque la limite de la chaussée. Vous ne devez pas la franchir.'
+        },
+        {
+          prompt: 'Quand êtes-vous autorisé à dépasser par la gauche?',
+          category: 'Dépassement',
+          options: ['Jamais', 'Quand le véhicule devant tourne à droite', 'Sur une voie à sens unique', 'En zone résidentielle'],
+          explanation: 'Vous pouvez dépasser par la gauche quand le véhicule devant vous signale qu\'il tourne à droite.'
+        },
+        {
+          prompt: 'Que signifie un panneau bleu rond avec une flèche blanche?',
+          category: 'Panneaux obligatoires',
+          options: ['Sens unique', 'Direction obligatoire — vous devez aller par là', 'Itinéraire conseillé', 'Sens interdit'],
+          explanation: 'Un panneau bleu rond avec une flèche blanche est une obligation de direction que vous devez suivre.'
+        },
+        {
+          prompt: 'Que faire quand un véhicule d\'urgence avec gyrophare approche par derrière?',
+          category: 'Urgence',
+          options: ['Accélérer', 'S\'arrêter immédiatement', 'Se ranger et le laisser passer', 'Allumer les feux de détresse'],
+          explanation: 'Quand un véhicule d\'urgence approche, rangez-vous et laissez-le passer.'
+        },
+        {
+          prompt: 'Quel est l\'âge minimum pour obtenir un permis provisoire au Rwanda?',
+          category: 'Permis',
+          options: ['16 ans', '18 ans', '21 ans', '15 ans'],
+          explanation: 'L\'âge minimum pour demander un permis provisoire au Rwanda est 18 ans.'
+        },
+        {
+          prompt: 'Que signifie un cercle rouge avec une barre blanche horizontale?',
+          category: 'Panneaux d\'interdiction',
+          options: ['Stationnement interdit', 'Sens interdit — ne pas entrer', 'Stop', 'Fin de limitation'],
+          explanation: 'Un cercle rouge avec une barre blanche signifie "Sens interdit" — vous ne pouvez pas entrer dans cette rue.'
+        },
+        {
+          prompt: 'Quand utiliser les feux de route la nuit?',
+          category: 'Conduite de nuit',
+          options: ['Toujours en ville', 'Sur route non éclairée sans trafic venant en face', 'Jamais', 'En cas de brouillard'],
+          explanation: 'Utilisez les feux de route sur routes non éclairées sans trafic venant en face. Baissez-les quand un véhicule approche.'
+        },
+        {
+          prompt: 'Que signifie un feu jaune clignotant?',
+          category: 'Feux de circulation',
+          options: ['Arrêtez-vous et attendez le vert', 'Passez avec prudence', 'Accélérez pour traverser', 'Préparez-vous à vous arrêter'],
+          explanation: 'Un feu jaune clignotant signifie passez avec prudence — vérifiez qu\'aucun véhicule n\'arrive.'
+        },
+        {
+          prompt: 'Que faire si vous ratez votre sortie sur une autoroute?',
+          category: 'Sécurité routière',
+          options: ['Reculer jusqu\'à la sortie', 'Faire un demi-tour', 'Continuer jusqu\'à la prochaine sortie', 'S\'arrêter sur le bas-côté'],
+          explanation: 'Ne reculez jamais et ne faites pas de demi-tour. Continuez jusqu\'à la prochaine sortie.'
+        },
+        {
+          prompt: 'Que signifie un panneau jaune en forme de losange?',
+          category: 'Panneaux de danger',
+          options: ['Fin de limitation', 'Danger potentiel à venir', 'Action obligatoire', 'Stationnement interdit'],
+          explanation: 'Un panneau jaune en losange signale un danger potentiel sur la route à venir.'
+        },
+        {
+          prompt: 'À quelle distance devez-vous stationner d\'un passage piéton?',
+          category: 'Stationnement',
+          options: ['5 mètres', '10 mètres', '15 mètres', '20 mètres'],
+          explanation: 'Ne stationnez pas à moins de 10 mètres d\'un passage piéton pour garantir une bonne visibilité.'
+        },
+        {
+          prompt: 'Que signifie un panneau blanc rectangulaire avec texte noir?',
+          category: 'Panneaux d\'information',
+          options: ['Obligation réglementaire', 'Règle locale', 'Direction ou distance', 'Interdiction'],
+          explanation: 'Les panneaux blancs rectangulaires avec texte noir fournissent des informations comme les directions ou distances.'
+        },
+        {
+          prompt: 'Que devez-vous faire avant de faire marche arrière?',
+          category: 'Manoeuvres',
+          options: ['Klaxonner', 'Vérifier les rétroviseurs et angles morts', 'Allumer les feux de détresse', 'Passer au point mort'],
+          explanation: 'Avant de reculer, vérifiez toujours les rétroviseurs et les angles morts pour les piétons ou obstacles.'
+        },
+        {
+          prompt: 'Quelle est la vitesse maximale sur autoroute au Rwanda?',
+          category: 'Limitations',
+          options: ['60 km/h', '80 km/h', '100 km/h', '120 km/h'],
+          explanation: 'La vitesse maximale sur les autoroutes rwandaises est de 100 km/h sauf indication contraire.'
+        },
+        {
+          prompt: 'Quand devez-vous vous arrêter à un passage à niveau?',
+          category: 'Passage à niveau',
+          options: ['Seulement si un train arrive', 'Quand les feux clignotent ou la barrière est baissée', 'Jamais — ralentissez seulement', 'Seulement la nuit'],
+          explanation: 'Vous devez vous arrêter complètement quand les feux clignotent, la barrière est baissée ou un signal indique qu\'un train approche.'
         }
       ]
     },
     exams: {
       packageSummary: 'Votre forfait comprend {count} tentatives d\'examen.',
       examTitle: 'Votre session d\'examen',
-      examSubtitle: 'Complétez chaque test de 20 questions avec une note de passage de 12/20. Vous avez acheté {count} tentatives.'
+      examSubtitle: 'Complétez chaque test de 20 questions avec une note de passage de 12/20. Vous avez acheté {count} tentatives.',
+      accessDenied: 'Accès refusé',
+      register: 'S\'inscrire',
+      choosePackage: 'Choisir un forfait',
+      loadingSession: 'Chargement...',
+      sessionNotValid: 'Session non valide',
+      buyOrChoosePackage: 'Acheter / Choisir un forfait',
+      goBack: 'Retour',
+      selectedPackage: 'Forfait sélectionné',
+      package: 'Forfait',
+      price: 'Prix',
+      attempts: 'Tentatives',
+      note: 'Note:',
+      instruction1: 'Cet examen démarre un compte à rebours de 20 minutes automatiquement après avoir cliqué sur Commencer.',
+      instruction2: 'Chaque test comporte 20 questions, vous devez obtenir au moins 12/20 pour réussir.',
+      instruction3: 'Besoin de réviser avant de commencer? Lisez la bibliothèque sur les panneaux et le code de la route.',
+      startExam: 'Commencer',
+      readLibrary: 'Lire la bibliothèque',
+      unlimited: 'Illimité',
+      remainingAttempts: 'Tentatives restantes:',
+      passMark: 'Note de passage: 12 / 20',
+      examLength: 'Durée',
+      questions: 'Questions',
+      readyWhenYouAre: 'Prêt quand vous l\'êtes',
+      description: 'Chaque test comporte 20 questions, vous devez obtenir au moins 12/20 pour réussir.'
     },
     pricing: {
       title: 'Prêt à réussir?',
@@ -699,6 +1143,10 @@ const translations = {
       terms: 'Conditions',
       privacy: 'Confidentialité',
       contact: 'Contact'
+    },
+    theme: {
+      toggleLight: 'Mode clair',
+      toggleDark: 'Mode sombre'
     }
   }
 } as const;

@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Quote, Star } from 'lucide-react';
+import { useLanguage } from '../i18n';
 const stories = [
 {
   name: 'Aline Mutoni',
@@ -58,12 +59,13 @@ const stories = [
 }];
 
 export function SuccessStories() {
+  const { language } = useLanguage();
   return (
     <>
       <PageHeader
-        eyebrow="STUDENT STORIES"
-        title="Real passes from real Rwandan drivers."
-        subtitle="Over 12,000 students prepare with Kora every month. Here's what some of them have to say." />
+        eyebrow={language === 'rw' ? 'IBY\'ABANYESHURI' : 'STUDENT STORIES'}
+        title={language === 'rw' ? 'Abanyeshuri nyabo batsinze.' : 'Real passes from real Rwandan drivers.'}
+        subtitle={language === 'rw' ? 'Abanyeshuri barenga 12,000 bitegura na Kora buri kwezi. Dore ibyo bamwe babo bavuga.' : 'Over 12,000 students prepare with Kora every month. Here\'s what some of them have to say.'} />
       
       <section className="bg-background py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-6">

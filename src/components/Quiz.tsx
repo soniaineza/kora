@@ -191,13 +191,12 @@ export function Quiz({
 
 
   const q = questions[current];
-  const qText = base[current % base.length];
+  const qIdx = shuffledOrder[current % shuffledOrder.length];
+  const qText = base[qIdx % base.length];
   useEffect(() => {
-    if (!isSample) return;
     let cancelled = false;
 
-    // For free sample: ensure timer is not started automatically.
-    // We'll also reset any previously armed state for a fresh attempt.
+    // Ensure timer is not started automatically for fresh attempt.
     setTimerArmed(false);
     setStartAtMs(null);
 
@@ -238,35 +237,24 @@ export function Quiz({
       cancelled = true;
     };
   }, [isSample]);
+  // Only hydrate existing timer — never create one. Creation happens on user click.
   useEffect(() => {
     if (!storageKey) return;
 
     let mounted = true;
-    const hydrate = () => {
-      try {
-        const raw = localStorage.getItem(storageKey);
-        if (raw) {
-          const parsed = JSON.parse(raw) as { startedAtMs?: number };
-          if (typeof parsed.startedAtMs === 'number') {
-            if (!mounted) return;
-            setStartAtMs(parsed.startedAtMs);
-            return;
-          }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { startedAtMs?: number };
+        if (typeof parsed.startedAtMs === 'number') {
+          if (!mounted) return;
+          setStartAtMs(parsed.startedAtMs);
+          setTimerArmed(true);
         }
-
-        const now = Date.now();
-        localStorage.setItem(storageKey, JSON.stringify({ startedAtMs: now }));
-        if (!mounted) return;
-        setStartAtMs(now);
-      } catch {
-        const now = Date.now();
-        localStorage.setItem(storageKey, JSON.stringify({ startedAtMs: now }));
-        if (!mounted) return;
-        setStartAtMs(now);
       }
-    };
-
-    hydrate();
+    } catch {
+      // ignore corrupted storage
+    }
 
     return () => {
       mounted = false;
@@ -276,7 +264,7 @@ export function Quiz({
   // Countdown (timer should start only after user clicks Start Timer)
   useEffect(() => {
     if (!startAtMs) return;
-    if (isSample && !timerArmed) return;
+    if (!timerArmed) return;
 
 
     let mounted = true;
@@ -379,7 +367,7 @@ export function Quiz({
       <section id="quiz" className="bg-background py-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-heading font-extrabold text-foreground mb-3">{t.quiz.results}</h2>
-          <p className="text-muted-foreground">Loading…</p>
+          <p className="text-muted-foreground">{t.quiz.loading}</p>
         </div>
       </section>
     );
@@ -405,13 +393,57 @@ export function Quiz({
               href="/library"
               className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
             >
-              {language === 'rw' ? 'Tangira kwiga' : 'Start Learning'}
+              {t.quiz.startLearning}
             </a>
           </div>
         </div>
       </section>
     );
   }
+  const startFreeTrialTimer = () => {
+    if (timerArmed) return;
+    const now = Date.now();
+    setStartAtMs(now);
+    try {
+      if (storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify({ startedAtMs: now }));
+      }
+    } catch {
+    }
+    setTimerArmed(true);
+  };
+
+  if (!timerArmed) {
+    return (
+      <section id="quiz" className="bg-background py-20 md:py-24">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="rounded-[2rem] border border-border bg-background p-10 text-center shadow-xl shadow-foreground/5">
+            <div className="relative mx-auto mb-8 h-20 w-20">
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Trophy size={36} />
+              </div>
+            </div>
+            <h2 className="text-3xl font-heading font-extrabold text-foreground mb-3">
+              {language === 'rw' ? 'Witeguye ikizamini?' : 'Ready for your exam?'}
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              {language === 'rw'
+                ? 'Ufite iminota 20 ngo usubize ibibazo 20. Kanda hasi gutangira kubara igihe.'
+                : 'You have 20 minutes to answer 20 questions. Click below to start the timer.'}
+            </p>
+            <button
+              onClick={startFreeTrialTimer}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-10 py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90"
+            >
+              {t.quiz.startTimer}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (finished) {
     const percentage = (score / questions.length) * 100;
     let message: string = t.quiz.keepGoing;
@@ -437,7 +469,7 @@ export function Quiz({
                 </p>
               </div>
               <div className="rounded-3xl bg-muted p-6">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Percentage</p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{t.quiz.percentage}</p>
                 <p className="text-3xl font-heading font-extrabold text-foreground">{Math.round(percentage)}%</p>
               </div>
             </div>
@@ -469,7 +501,7 @@ export function Quiz({
                   href={`/buy?package=${encodeURIComponent(plan || '')}&network=mtn`}
                   className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
-                  Get Full Access
+                  {t.quiz.fullAccess}
                 </a>
               )}
             </div>
@@ -481,24 +513,6 @@ export function Quiz({
   const handleSelect = (idx: number) => {
     if (revealed) return;
     setSelected(idx);
-  };
-
-  const startFreeTrialTimer = () => {
-    if (!isSample) return;
-    if (timerArmed) return;
-
-    // Ensure countdown uses a fresh start time for this attempt.
-    const now = Date.now();
-    setStartAtMs(now);
-    try {
-      if (storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify({ startedAtMs: now }));
-      }
-    } catch {
-      // ignore storage failures
-    }
-
-    setTimerArmed(true);
   };
 
   const handleSubmit = () => {
@@ -558,18 +572,6 @@ export function Quiz({
                         </div>
                       </div>
                     </div>
-
-                    {isSample && !timerArmed && (
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={startFreeTrialTimer}
-                          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90"
-                        >
-                          {language === 'rw' ? 'Tangira igihe' : 'Start Timer'}
-                        </button>
-                      </div>
-                    )}
 
                   </div>
 

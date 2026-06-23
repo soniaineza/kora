@@ -99,7 +99,7 @@ export function Login() {
         {step === 'enter' ? (
           <form onSubmit={handleSendOtp} className="space-y-5">
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Phone</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.phoneLabel}</label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -108,7 +108,7 @@ export function Login() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="07xxxxxxxx"
+                  placeholder={t.auth.phonePlaceholder}
                 />
               </div>
             </div>
@@ -118,9 +118,9 @@ export function Login() {
               disabled={sending || normalizePhone(phone).length < 9}
               className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
-              {sending ? 'Sending Code...' : (
+              {sending ? t.auth.sendingCode : (
                 <>
-                  Send Login Code <ArrowRight size={14} />
+                  {t.auth.sendCode} <ArrowRight size={14} />
                 </>
               )}
             </button>
@@ -128,7 +128,7 @@ export function Login() {
         ) : (
           <form onSubmit={handleVerify} className="space-y-5">
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Verification Code</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.verificationCode}</label>
               <div className="relative">
                 <ShieldCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -137,10 +137,10 @@ export function Login() {
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="123456"
+                  placeholder={t.auth.verificationPlaceholder}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Enter the 6-digit code sent to your phone.</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">{t.auth.verificationHelper}</p>
             </div>
 
             <button
@@ -148,9 +148,9 @@ export function Login() {
               disabled={verifying || code.length !== 6}
               className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
-              {verifying ? 'Verifying...' : (
+              {verifying ? t.auth.verifying : (
                 <>
-                  Verify & Login <ArrowRight size={14} />
+                  {t.auth.verifyAndLogin} <ArrowRight size={14} />
                 </>
               )}
             </button>
@@ -160,7 +160,7 @@ export function Login() {
               onClick={() => setStep('enter')}
               className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
             >
-              Back to login
+              {t.auth.backToLogin}
             </button>
           </form>
         )}

@@ -122,7 +122,7 @@ export function Register() {
           <p className="text-sm text-muted-foreground">
             {step === 'enter'
               ? t.auth.registerSubtitle
-              : languageText(t, 'Enter the SMS code you received to verify your account')}
+              : t.auth.verificationHelper}
           </p>
         </div>
 
@@ -133,18 +133,18 @@ export function Register() {
         {step === 'enter' ? (
           <form onSubmit={handleSendOtp} className="space-y-5">
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Full name</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.fullNameLabel}</label>
               <input
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                placeholder="e.g. Jean Claude"
+                placeholder={t.auth.fullNamePlaceholder}
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Phone</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.phoneLabel}</label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -153,13 +153,13 @@ export function Register() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="07xxxxxxxx"
+                  placeholder={t.auth.phonePlaceholder}
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Password (6 digits)</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.password} (6 {language === 'rw' ? 'imibare' : language === 'fr' ? 'chiffres' : 'digits'})</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -168,10 +168,10 @@ export function Register() {
                   value={password6}
                   onChange={(e) => setPassword6(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="123456"
+                  placeholder={t.auth.verificationPlaceholder}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Your password must be exactly 6 digits.</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">{t.auth.passwordHelper}</p>
             </div>
 
             <button
@@ -179,9 +179,9 @@ export function Register() {
               disabled={sending || !canNext}
               className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
-              {sending ? 'Creating...' : (
+              {sending ? t.auth.creating : (
                 <>
-                  Create Account <ArrowRight size={14} />
+                  {t.auth.createAccount} <ArrowRight size={14} />
                 </>
               )}
             </button>
@@ -189,7 +189,7 @@ export function Register() {
         ) : (
           <form onSubmit={handleVerify} className="space-y-5">
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">Verification Code</label>
+              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.verificationCode}</label>
               <div className="relative">
                 <ShieldCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -198,10 +198,10 @@ export function Register() {
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="123456"
+                  placeholder={t.auth.verificationPlaceholder}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Enter the 6-digit code sent to your phone.</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">{t.auth.verificationHelper}</p>
             </div>
 
             <button
@@ -209,9 +209,9 @@ export function Register() {
               disabled={verifying || code.length !== 6}
               className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
-              {verifying ? 'Verifying...' : (
+              {verifying ? t.auth.verifying : (
                 <>
-                  Verify & Continue <ArrowRight size={14} />
+                  {t.auth.verifyAndContinue} <ArrowRight size={14} />
                 </>
               )}
             </button>
@@ -221,15 +221,15 @@ export function Register() {
               onClick={() => setStep('enter')}
               className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
             >
-              Back to registration
+              {t.auth.backToRegistration}
             </button>
           </form>
         )}
 
         <div className="mt-6 pt-6 border-t border-border text-center text-sm">
-          <span className="text-muted-foreground">Already have account? </span>
+          <span className="text-muted-foreground">{t.auth.alreadyHaveAccount} </span>
           <Link to="/login" className="text-primary font-semibold hover:underline">
-            Login
+            {t.auth.loginLink}
           </Link>
         </div>
       </div>
@@ -237,6 +237,3 @@ export function Register() {
   );
 }
 
-function languageText(_: any, fallback: string) {
-  return fallback;
-}

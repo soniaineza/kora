@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../i18n';
 export function Contact() {
+  const { language } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -10,9 +12,9 @@ export function Contact() {
   return (
     <>
       <PageHeader
-        eyebrow="GET IN TOUCH"
-        title="We're here to help."
-        subtitle="Questions about exam codes, payments, or how to start? Reach out — we usually reply within 24 hours." />
+        eyebrow={language === 'rw' ? 'TWANDIKIRE' : 'GET IN TOUCH'}
+        title={language === 'rw' ? 'Turi hano kugufasha.' : 'We\'re here to help.'}
+        subtitle={language === 'rw' ? 'Ubaza ibijyanye na kode, ubwishyu, cyangwa uko utangira? Twandikire — dusubiza mu masaha 24.' : 'Questions about exam codes, payments, or how to start? Reach out — we usually reply within 24 hours.'} />
       
       <section className="bg-background py-16 md:py-20">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -22,7 +24,7 @@ export function Contact() {
                 <Mail size={18} />
               </div>
               <div>
-                <h3 className="font-bold mb-1 text-sm">Email</h3>
+                <h3 className="font-bold mb-1 text-sm">{language === 'rw' ? 'Imeyili' : 'Email'}</h3>
                 <a
                   href="mailto:support@kora.rw"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -36,7 +38,7 @@ export function Contact() {
                 <Phone size={18} />
               </div>
               <div>
-                <h3 className="font-bold mb-1 text-sm">Phone / WhatsApp</h3>
+                <h3 className="font-bold mb-1 text-sm">{language === 'rw' ? 'Telefone / WhatsApp' : 'Phone / WhatsApp'}</h3>
                 <p className="text-sm text-muted-foreground">
                   +250 788 123 456
                 </p>
@@ -47,7 +49,7 @@ export function Contact() {
                 <MapPin size={18} />
               </div>
               <div>
-                <h3 className="font-bold mb-1 text-sm">Office</h3>
+                <h3 className="font-bold mb-1 text-sm">{language === 'rw' ? 'Ireme' : 'Office'}</h3>
                 <p className="text-sm text-muted-foreground">
                   KG 9 Ave, Kigali, Rwanda
                 </p>
@@ -62,10 +64,10 @@ export function Contact() {
                   <CheckCircle2 size={24} />
                 </div>
                 <h3 className="text-xl font-heading font-bold mb-2">
-                  Message sent!
+                  {language === 'rw' ? 'Ubutumwa bwoherejwe!' : 'Message sent!'}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  We'll get back to you within 24 hours.
+                  {language === 'rw' ? 'Tuzakwasubiza mu masaha 24.' : 'We\'ll get back to you within 24 hours.'}
                 </p>
               </div> :
 
@@ -76,7 +78,7 @@ export function Contact() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold text-foreground block mb-2">
-                      Full Name
+                      {language === 'rw' ? 'Izina ryose' : 'Full Name'}
                     </label>
                     <input
                     required
@@ -87,7 +89,7 @@ export function Contact() {
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-foreground block mb-2">
-                      Email
+                      {language === 'rw' ? 'Imeyili' : 'Email'}
                     </label>
                     <input
                     required
@@ -99,31 +101,31 @@ export function Contact() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground block mb-2">
-                    Subject
+                    {language === 'rw' ? 'Icyo wandika' : 'Subject'}
                   </label>
                   <input
                   required
                   type="text"
                   className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Payment issue" />
+                  placeholder={language === 'rw' ? 'Ikibazo cy\'ubwishyu' : 'Payment issue'} />
                 
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground block mb-2">
-                    Message
+                    {language === 'rw' ? 'Ubutumwa' : 'Message'}
                   </label>
                   <textarea
                   required
                   rows={5}
                   className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-                  placeholder="How can we help?" />
+                  placeholder={language === 'rw' ? 'Twafasha ute?' : 'How can we help?'} />
                 
                 </div>
                 <button
                 type="submit"
                 className="bg-primary text-primary-foreground rounded-full px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
                 
-                  Send Message <Send size={14} />
+                  {language === 'rw' ? 'Ohereza ubutumwa' : 'Send Message'} <Send size={14} />
                 </button>
               </form>
             }

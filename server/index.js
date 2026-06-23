@@ -36,7 +36,6 @@ const allowedOrigins = [
     .map((origin) => origin.trim())
     .filter(Boolean),
 ];
-
 app.use(
   cors({
     origin(origin, callback) {
@@ -44,56 +43,33 @@ app.use(
         callback(null, true);
         return;
       }
-
       callback(new Error(`Origin not allowed by CORS: ${origin}`));
     },
     credentials: true,
   })
 );
-
 app.use(express.json({ limit: '1mb' }));
-
 app.use((req, _res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.url}`);
   next();
 });
-
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY');
 }
-
 const supabaseAdmin = createClient(
   supabaseUrl,
   supabaseServiceRoleKey || supabaseAnonKey
 );
-
 const JWT_SECRET = process.env.JWT_SECRET;
 const isProduction = process.env.NODE_ENV === 'production';
-
 if (!JWT_SECRET && isProduction) {
   throw new Error('Missing JWT_SECRET in production');
 }
-
 const jwtSecret = JWT_SECRET || 'dev-secret';
 const paymentMode = (process.env.PAYMENT_MODE || 'demo').toLowerCase();
-
-// OTP sending is handled in this repo as a dev OTP.
-// Real SMS integration can be added later; however, the OTP endpoints must still work.
-// If you are seeing "no OTP received", use devCode and verify with the returned value.
-// When NODE_ENV=production, the backend generates a random code, so you cannot see it.
-// To make it work during testing, set NODE_ENV !== 'production' and (optionally) DEV_OTP_CODE.
-
-// console.log('ENV:', {
-//   NODE_ENV: process.env.NODE_ENV,
-//   PAYMENT_MODE: paymentMode,
-//   SUPABASE_URL: process.env.SUPABASE_URL ? '***' : undefined,
-//   HAS_JWT_SECRET: Boolean(process.env.JWT_SECRET),
-// });
-
 const PLAN_MAP = {
   STARTER: { days: 3, exams: 10, amountRwf: 500, unlimited: false },
   BASIC: { days: 5, exams: 15, amountRwf: 1000, unlimited: false },
@@ -103,26 +79,21 @@ const PLAN_MAP = {
   PRO: { days: 30, exams: 50, amountRwf: 5000, unlimited: false },
   UNLIMITED: { days: null, exams: null, amountRwf: 7000, unlimited: true },
 };
-
 const EXAM_DURATION_SECONDS = Number(process.env.EXAM_DURATION_SECONDS || 20 * 60);
-
 function normalizePhone(raw) {
   return String(raw || '').replace(/\D/g, '');
 }
-
 function getPlan(packageKey) {
   const key = String(packageKey || '').toUpperCase();
   const plan = PLAN_MAP[key];
   if (!plan) return null;
   return { key, ...plan };
 }
-
 function addDays(date, days) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
-
 function signToken(phone) {
   return jwt.sign({ phone }, jwtSecret, { expiresIn: '30d' });
 }
@@ -452,10 +423,23 @@ app.get('/api/internal/free-exam/status', requireAuth, async (req, res) => {
       .limit(1)
       .maybeSingle();
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('[free-exam/status] supabase error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      return res.status(500).json({
+        error: error.message,
+        supabase: { details: error.details, hint: error.hint, code: error.code },
+      });
+    }
+
     return res.json({ ok: true, alreadyTaken: !!data });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    console.error('[free-exam/status] handler error:', e);
+    return res.status(500).json({ error: e.message || 'Internal Server Error' });
   }
 });
 
@@ -476,11 +460,27 @@ app.post('/api/internal/free-exam/complete', requireAuth, async (req, res) => {
       .limit(1)
       .maybeSingle();
 
-    if (existingErr) return res.status(500).json({ error: existingErr.message });
+    if (existingErr) {
+      console.error('[free-exam/complete] existing session lookup error:', {
+        message: existingErr.message,
+        details: existingErr.details,
+        hint: existingErr.hint,
+        code: existingErr.code,
+      });
+      return res.status(500).json({
+        error: existingErr.message,
+        supabase: {
+          details: existingErr.details,
+          hint: existingErr.hint,
+          code: existingErr.code,
+        },
+      });
+    }
+
     if (existing) return res.json({ ok: true, alreadyCompleted: true });
 
     const sessionId = `fs_${phone}_${Date.now()}`;
-    const { error: insErr } = await supabaseAdmin.from('exam_sessions').insert({
+    const payload = {
       id: sessionId,
       phone,
       plan: 'FREE_SAMPLE',
@@ -490,14 +490,37 @@ app.post('/api/internal/free-exam/complete', requireAuth, async (req, res) => {
       updated_at: now,
       completed_at: now,
       expires_at: null,
-    });
+    };
 
-    if (insErr) return res.status(500).json({ error: insErr.message });
+    const { error: insErr } = await supabaseAdmin
+      .from('exam_sessions')
+      .insert(payload);
+
+    if (insErr) {
+      console.error('[free-exam/complete] insert error:', {
+        message: insErr.message,
+        details: insErr.details,
+        hint: insErr.hint,
+        code: insErr.code,
+        payload,
+      });
+      return res.status(500).json({
+        error: insErr.message,
+        supabase: {
+          details: insErr.details,
+          hint: insErr.hint,
+          code: insErr.code,
+        },
+      });
+    }
+
     return res.json({ ok: true, alreadyCompleted: false });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    console.error('[free-exam/complete] handler error:', e);
+    return res.status(500).json({ error: e.message || 'Internal Server Error' });
   }
 });
+
 
 app.get('/api/internal/active-package', requireAuth, async (req, res) => {
   try {

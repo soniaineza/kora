@@ -1,0 +1,201 @@
+{
+  "languageName": "Ururimi: Kinyarwanda",
+  "nav": {
+    "how": "Uko bikora",
+    "laws": "Amategeko y\u2019umuhanda",
+    "packages": "Paketi",
+    "login": "Injira",
+    "start": "Tangira ikizamini cy\u2019ubuntu",
+    "toggleMenu": "Fungura cyangwa funga menu",
+    "language": "Ururimi",
+    "library": "Ibitabo"
+  },
+  "auth": {
+    "loginTitle": "Murakaza neza muri Kora",
+    "loginSubtitle": "Injira kugirango ukomeze imyitozo yawe.",
+    "phoneNumber": "Nimero ya telefone",
+    "phonePlaceholder": "07XX XXX XXX",
+    "password": "Ijambo ry\u2019ibanga",
+    "passwordPlaceholder": "••••••••",
+    "forgot": "Wibagiwe?",
+    "loggingIn": "Kwinjira...",
+    "login": "Injira",
+    "newToKora": "Uri mushya kuri Kora?",
+    "createAccountLink": "Fungura konti",
+    "registerTitle": "Tangira imyitozo uyu munsi",
+    "registerSubtitle": "Ikizamini cy\u2019urugero cy\u2019ubuntu. Nta konti isabwa.",
+    "fullName": "Amazina yose",
+    "fullNamePlaceholder": "Mugisha Eric",
+    "creatingAccount": "Gufungura konti...",
+    "createAccount": "Fungura konti",
+    "registerSuccess": "Konti yafunguwe neza!",
+    "loginSuccess": "Winjiye neza.",
+    "alreadyHaveAccount": "Ufite konti?",
+    "termsNotice": "Iyo wiyandikishije wemera",
+    "and": "na",
+    "verificationCode": "Kode yo kwemeza",
+    "enterVerificationCode": "Shyiramo kode y\u2019imibare 6 wakiriye kuri telefone yawe",
+    "sendLoginCode": "Ohereza kode yo kwinjira",
+    "sendingCode": "Ohereza kode...",
+    "verifyLogin": "Kwemeza no kwinjira",
+    "verifying": "Bikorwa...",
+    "sendOtp": "Ohereza kode",
+    "fullNameLabel": "Amazina yose"
+  },
+  "packages": {
+    "title": "Hitamo paketi ikubereye",
+    "subtitle": "Paketi z\u2019imyitozo zifite igihe cyiza kandi kode ziboneka ako kanya kuri SMS.",
+    "description": "Reba amahitamo y\u2019ipaketi utangire imyitozo n\u2019ibibazo by\u2019ikizamini bya Rwanda.",
+    "startPractice": "Tangira imyitozo",
+    "safety": "Umutekano",
+    "vehicle": "Imodoka",
+    "signals": "Inyambo",
+    "training": "Imyitozo",
+    "exams": "ibizamini",
+    "days": "iminsi",
+    "buy": "Gura",
+    "payment": "Imyishyurire: MTN&AIRTEL",
+    "faq": "Iga kugeza utsinze — 30,000 RWF \u2192"
+  },
+
+  "hero": {
+    "badge": "BIJYANYE N\u2019AMATEGEKO YO MU 2024",
+    "titlePrefix": "Bona",
+    "titleHighlight": "perimi provisoire",
+    "titleSuffix": "ku nshuro ya mbere.",
+    "description": "Urubuga rwuzuye rwo kwiga amategeko y\u2019umuhanda mu Rwanda. Kora ibibazo bimeze nk\u2019ibya\u2019ikizamini, ukurikirane aho ugeze, kandi utsinde ufite icyizere.",
+    "codes": "Gura kode z\u2019ikizamini",
+    "sample": "Gerageza ikizamini",
+    "joinedBy": "Bifashishwa na",
+    "students": "abanyeshuri 12,500+",
+    "thisMonth": "uku kwezi",
+    "phoneQuestion": "Umuvuduko ntarengwa mu gace gatuwe ni uwuhe?",
+    "questionCount": "IKIBAZO 14 / 20",
+    "passRate": "ABATSINDA",
+    "createAccountLink": "Fungura konti",
+    "provisoireSubtitle": "Provisoire \u2014 imodoka & moto"
+  },
+  "how": {
+    "eyebrow": "UKO BIKORA",
+    "title": "Bona perimi mu ntambwe 3 zoroshye",
+    "steps": [
+      { "title": "Hitamo paketi", "desc": "Hitamo umubare w\u2019ibizamini ushaka gukora. Paketi zitangirira kuri 500 RWF." },
+      { "title": "Wishyura na MoMo", "desc": "Wishyura ukoresheje MTN Mobile Money cyangwa Airtel Money uhite ubona kode kuri SMS." },
+      { "title": "Tangira imyitozo", "desc": "Shyiramo kode yawe utangire gukora ibizamini by\u2019imyitozo bifite ibisobanuro ako kanya." }
+    ]
+  },
+  "traffic": {
+    "title": "Menya ibyapa byo ku muhanda.",
+    "subtitle": "Reba ibyiciro bine by\u2019ibyapa byo mu Rwanda bikunze kugaragara mu kizamini cya provisoire.",
+    "signs": "Ibyapa",
+    "categories": {
+      "warning": {
+        "label": "Iburira",
+        "intro": "Ibyapa bya mpandeshatu zitukura bikuburira ibyago biri imbere. Gabanya umuvuduko.",
+        "signs": [
+          ["Iburira rusange", "Hari icyago imbere, itegure kugabanya umuvuduko."],
+          ["Ikoni rikomeye", "Hari ikoni rikomeye imbere. Gabanya umuvuduko."],
+          ["Akandi kaga", "Hari akaga kadasobanuwe imbere \u2014 genda witonze."]
+        ]
+      },
+      "priority": {
+        "label": "Icyambere",
+        "intro": "Ibi byapa bigaragaza ufite uburenganzira bwo kubanza mu masangano.",
+        "signs": [
+          ["Hagarara", "Hagarara burundu mbere yo gukomeza."],
+          ["Tanga inzira", "Tanga inzira ku modoka ziri mu muhanda munini."]
+        ]
+      },
+      "prohibition": {
+        "label": "Ibibujijwe",
+        "intro": "Ibyapa bizengurutse bitukura bigaragaza ibikorwa bitemewe.",
+        "signs": [
+          ["Nta kwinjira", "Kwinjira birabujijwe ku binyabiziga byose."],
+          ["Umuvuduko ntarengwa", "Nturenze umuvuduko wanditseho muri km/h."]
+        ]
+      },
+      "mandatory": {
+        "label": "Ibigomba gukorwa",
+        "intro": "Ibyapa by\u2019ubururu bizengurutse bigaragaza ibyo ugomba gukurikiza.",
+        "signs": [
+          ["Icyerekezo imbere", "Komeza mu cyerekezo cyerekanywe gusa."],
+          ["Rond-point", "Imodoka zigomba gukurikiza icyerekezo cya rond-point."]
+        ]
+      }
+    }
+  },
+  "quiz": {
+    "badge": "IKIZAMINI CY\u2019UBUNTU",
+    "timeLeftLabel": "igihe gisigaye",
+    "title": "Gerageza ikibazo kimeze nk\u2019icy\u2019ikizamini.",
+    "subtitle": "Ibibazo 5. Nta konti isabwa.",
+    "question": "IKIBAZO",
+    "score": "Amanota",
+    "submit": "Ohereza igisubizo",
+    "next": "Ikibazo gikurikira",
+    "results": "Reba amanota",
+    "correct": "Ni byo!",
+    "notQuite": "Si byo neza",
+    "excellent": "Wakoze cyane!",
+    "good": "Ni byiza!",
+    "practice": "Komeza imyitozo!",
+    "youScored": "Wabonye",
+    "perfect": "Amanota yose! Witeguye gukora ikizamini nyacyo.",
+    "onTrack": "Uri mu nzira nziza. Komeza kwitoza kugira ngo usobanukirwe amategeko akomeye.",
+    "keepGoing": "Ntugire ikibazo \u2014 ni cyo Kora igufasha. Komeza imyitozo.",
+    "tryAgain": "Ongera ugerageze",
+    "fullAccess": "Fungura byose"
+  },
+  "exams": {
+    "packageSummary": "Paketi wahisemo irimo ibyo kugerageza {count}.",
+    "examTitle": "Ikizamini cyawe",
+    "examSubtitle": "Kurikirana buri kizamini cyibazwa ibibazo 20, ugomba gutsinda 12/20. Wahisemo {count}"
+  },
+  "pricing": {
+    "title": "Witeguye gutsinda?",
+    "subtitle": "Gura kode z\u2019ikizamini utangire urugendo. Kode zose zimara iminsi 30 uhereye igihe uzikoresheje bwa mbere.",
+    "rwf": "Amafaranga y\u2019u Rwanda",
+    "mostPopular": "IKUNZWE CYANE",
+    "buy": "Gura na MoMo",
+    "plans": []
+  },
+  "terms": {
+    "title": "Amategeko ya Serivisi",
+    "lastUpdated": "Yavuguruwe: Mutarama 2026",
+    "paragraph1": "Ukoresheje cyangwa wifashishije Kora.rw wemera amategeko. Niba utabyemera, ntukoreshe uru rubuga.",
+    "paragraph2": "Kode z\u2019ibizamini zose zigurwa hakoreshejwe MTN MoMo cyangwa Airtel Money ziba zuzuye iminsi 30 kuva uko zakoreshejwe bwa mbere. Kode ni uwaziguze gusa ntizishobora guhanwa.",
+    "paragraph3": "Kode zidakoreshwa zishobora gusubizwa amafaranga mu minsi 7. Iyo kode imaze gukoreshwa, ntisubizwa keretse biteganywa n\u2019amategeko."
+  },
+  "privacy": {
+    "title": "Politiki y\u2019Ibanga",
+    "lastUpdated": "Yavuguruwe: Mutarama 2026",
+    "paragraph1": "Dukoresha nimero yawe ya telefone kugirango twohereze kode za SMS, inyandiko z\u2019amafaranga ya MoMo, n\u2019ibipimo by\u2019imyitozo (ibibazo wisubije, igihe, amanota).",
+    "paragraph2": "Nimero yawe ikoreshwa gusa mu kohereza kode n\u2019amatangazo y\u2019ingenzi. Amakuru y\u2019imyitozo akoreshwa mu byo gukurikirana aho ugeze.",
+    "paragraph3": "Ushobora gusaba kubona, gukosora cyangwa gusiba amakuru yawe iyo ari yo yose ukoresheje email privacy@kora.rw."
+  },
+  "footer": {
+    "description": "Kora ni urubuga ruyoboye mu kwigisha amategeko y\u2019umuhanda mu Rwanda, rufasha abanyeshuri ibihumbi kubona perimi buri mwaka.",
+    "product": "Serivisi",
+    "sampleQuiz": "Ikizamini cy\u2019urugero",
+    "trafficRules": "Amategeko y\u2019umuhanda",
+    "pricingPlans": "Ibiciro",
+    "successStories": "Inkuru z\u2019abatsinze",
+    "company": "Ikigo",
+    "about": "Ibitwerekeye",
+    "contactSupport": "Ubufasha",
+    "termsService": "Amategeko ya serivisi",
+    "privacyPolicy": "Politiki y\u2019ibanga",
+    "payments": "KWISHYURA",
+    "rights": "Kora Driving Platform. Uburenganzira bwose burabitswe.",
+    "terms": "Amategeko",
+    "privacy": "Ibanga",
+    "contact": "Twandikire"
+  }
+}
+
+
+
+
+
+
+

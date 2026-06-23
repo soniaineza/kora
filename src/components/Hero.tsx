@@ -331,7 +331,7 @@ export function Hero() {
         <div className="relative overflow-hidden rounded-[2rem] border border-border bg-white shadow-2xl">
           <img
             src={happyCustom}
-            alt="Happy Black woman holding a provisional license card"
+            alt={t.hero.mock?.altHappyWoman ?? 'Happy Black woman holding a provisional license card'}
             className="h-56 w-full object-cover"
           />
           <div className="absolute left-4 top-4 rounded-3xl bg-white/95 px-3 py-2 shadow-lg shadow-foreground/10 border border-border">

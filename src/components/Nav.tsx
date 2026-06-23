@@ -96,7 +96,7 @@ export function Nav() {
             <Link
               to="/register"
               className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-foreground">
-              Create account
+              {t.nav.createAccount}
             </Link>
           ) : (
             <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function Nav() {
               <button
                 onClick={handleLogout}
                 className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-foreground">
-                Logout
+                {t.nav.logout}
               </button>
             </div>
 
@@ -172,14 +172,14 @@ export function Nav() {
               <Link
                 to="/register"
                 className="py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-                Create account
+                {t.nav.createAccount}
               </Link>
             </>
           ) : (
             <button
               onClick={handleLogout}
               className="py-3 text-left text-sm font-medium transition-colors duration-300 hover:text-primary">
-              Logout
+              {t.nav.logout}
             </button>
           )}
 
