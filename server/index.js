@@ -329,11 +329,17 @@ app.post('/api/otp/verify', async (req, res) => {
       return res.status(401).json({ error: 'Verification code is incorrect' });
     }
 
-    if (process.env.NODE_ENV === 'production') {
+    // Demo mode switch (recommended).
+    // Set OTP_DEMO=true in Render env variables to allow any 6-digit code.
+    // If OTP_DEMO is false/unset, require exact code match.
+    const otpDemo = String(process.env.OTP_DEMO || '').toLowerCase() === 'true';
+    if (!otpDemo) {
       if (data.code !== code) {
         return res.status(401).json({ error: 'Verification code is incorrect' });
       }
     }
+
+
 
 
     if (new Date(data.expires_at).getTime() < Date.now()) {
