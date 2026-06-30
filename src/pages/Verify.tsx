@@ -32,6 +32,11 @@ export function Verify() {
       : 'Please wait a moment while your payment is being verified.';
 
   const handleContinue = useCallback(async () => {
+    if (packageKey === 'BOOK') {
+      navigate('/library');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -140,16 +145,24 @@ export function Verify() {
                   {language === 'rw' ? 'Kwishyura kwagenze neza!' : 'Payment Successful!'}
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                  {language === 'rw' 
-                    ? 'Noneho ushobora gutangira gukora ibizamini byawe.' 
-                    : 'Your package is now active. You can start your practice exams now.'}
+                  {packageKey === 'BOOK'
+                    ? (language === 'rw'
+                      ? 'Igitabo cyawe kirashobora gusomwa noneho.'
+                      : language === 'fr'
+                        ? 'Votre livre est maintenant accessible.'
+                        : 'Your book is now accessible.')
+                    : (language === 'rw'
+                      ? 'Noneho ushobora gutangira gukora ibizamini byawe.'
+                      : 'Your package is now active. You can start your practice exams now.')}
                 </p>
                 <button
                   onClick={handleContinue}
                   disabled={loading}
                   className="w-full bg-primary text-primary-foreground rounded-full py-4 text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
-                  {loading ? '...' : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam')}
+                  {loading ? '...' : (packageKey === 'BOOK'
+                    ? (language === 'rw' ? 'Soma Igitabo' : language === 'fr' ? 'Lire le livre' : 'Read the Book')
+                    : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam'))}
                 </button>
               </div>
             ) : (

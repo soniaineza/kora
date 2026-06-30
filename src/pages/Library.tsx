@@ -29,12 +29,10 @@ export function Library() {
 
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
-  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [activePart, setActivePart] = useState(BOOK_PARTS[0].id);
   const [pdfError, setPdfError] = useState<string | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
 
   const t = (obj: { en: string; rw: string; fr: string }) =>
@@ -63,30 +61,12 @@ export function Library() {
     return () => { mounted = false; };
   }, [apiBase]);
 
-  useEffect(() => {
-    if (!hasAccess) return;
-    let mounted = true;
-    setLoadingPdf(true);
-    (async () => {
-      try {
-        const token = localStorage.getItem('kora-jwt');
-        const res = await fetch(`${apiBase}/api/internal/book/pdf`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Failed to load PDF');
-        const buf = await res.arrayBuffer();
-        if (mounted) {
-          setPdfData(buf);
-          setPdfError(null);
-        }
-      } catch (e: any) {
-        if (mounted) setPdfError(e?.message || 'Failed to load PDF');
-      } finally {
-        if (mounted) setLoadingPdf(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [hasAccess, apiBase]);
+  const token = localStorage.getItem('kora-jwt');
+  const pdfUrl = hasAccess && token ? `${apiBase}/api/internal/book/pdf` : null;
+  const pdfOptions = useMemo(
+    () => (token ? { httpHeaders: { Authorization: `Bearer ${token}` } } : undefined),
+    [token]
+  );
 
   const activePartData = useMemo(
     () => BOOK_PARTS.find((p) => p.id === activePart) || BOOK_PARTS[0],
@@ -307,19 +287,18 @@ export function Library() {
             className="rounded-3xl border border-border bg-background shadow-sm overflow-hidden"
             onContextMenu={(e) => e.preventDefault()}
           >
-            {loadingPdf && !pdfData ? (
-              <div className="flex items-center justify-center py-32">
-                <div className="text-muted-foreground text-sm">
-                  {language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Chargement...' : 'Loading...'}
-                </div>
-              </div>
-            ) : pdfData ? (
+            {pdfUrl ? (
               <div className="flex justify-center p-4 sm:p-6 md:p-8">
                 <Document
-                  file={pdfData}
+                  file={pdfUrl}
+                  options={pdfOptions}
                   onLoadSuccess={({ numPages: n }) => {
                     setNumPages(n);
+                    setPdfError(null);
                     if (currentPage > n) setCurrentPage(1);
+                  }}
+                  onLoadError={(err) => {
+                    setPdfError(err?.message || 'Failed to load the book');
                   }}
                   loading={
                     <div className="flex items-center justify-center py-32">
@@ -350,7 +329,13 @@ export function Library() {
                   />
                 </Document>
               </div>
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center py-32">
+                <div className="text-muted-foreground text-sm">
+                  {language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Chargement...' : 'Loading...'}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Bottom navigation — simple prev/next with page number */}
