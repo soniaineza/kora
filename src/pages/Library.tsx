@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
-import { Document, Page } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const BOOK_PARTS = [
   { id: 'p01', title: { en: 'Introduction & Overview', rw: 'Incamake n\'Iby\'ibanze', fr: 'Introduction et aperçu' }, startPage: 1, endPage: 7 },
