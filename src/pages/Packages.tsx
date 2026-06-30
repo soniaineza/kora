@@ -112,6 +112,15 @@ const packages: Pkg[] = [
     highlight: false,
     labelEn: '',
     labelRw: ''
+  },
+  {
+    key: 'BOOK',
+    questions: 'Book',
+    price: '1,000',
+    days: '365 days',
+    highlight: false,
+    labelEn: 'IGAZETI-1',
+    labelRw: 'IGAZETI-1'
   }
 ];
 

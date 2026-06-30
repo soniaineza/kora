@@ -27,6 +27,7 @@ const PLAN_MAP: Record<string, PlanDef> = {
   PREMIUM: { key: 'PREMIUM', titleEn: '3,000 RWF / 25 exams / 15 days', titleRw: '3000Frw / ibizamini 25 / iminsi 15', exams: 25, days: 15, priceRwf: 3000 },
   PRO: { key: 'PRO', titleEn: '5,000 RWF / 50 exams / 30 days', titleRw: '5000Frw / ibizamini 50 / iminsi 30', exams: 50, days: 30, priceRwf: 5000 },
   UNLIMITED: { key: 'UNLIMITED', titleEn: '7,000 RWF / unlimited / unlimited', titleRw: '7000Frw / bidashira / bidashira', exams: 'unlimited', days: 'unlimited', priceRwf: 7000 },
+  BOOK: { key: 'BOOK', titleEn: '1,000 RWF / Book Access / 1 year', titleRw: '1000Frw / Ibitabo / umwaka 1', exams: 'unlimited', days: 365, priceRwf: 1000 },
 };
 
 export function Buy() {

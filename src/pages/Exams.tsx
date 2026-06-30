@@ -26,6 +26,7 @@ export function Exams() {
     PREMIUM: { price: '3,000 RWF', exams: 25 },
     PRO: { price: '5,000 RWF', exams: 50 },
     UNLIMITED: { price: '7,000 RWF', exams: 999999 },
+    BOOK: { price: '1,000 RWF', exams: 999999 },
   };
 
   const p = planMap[plan] || planMap.STARTER;

@@ -78,6 +78,7 @@ const PLAN_MAP = {
   PREMIUM: { days: 15, exams: 25, amountRwf: 3000, unlimited: false },
   PRO: { days: 30, exams: 50, amountRwf: 5000, unlimited: false },
   UNLIMITED: { days: null, exams: null, amountRwf: 7000, unlimited: true },
+  BOOK: { days: 365, exams: null, amountRwf: 1000, unlimited: true },
 };
 const EXAM_DURATION_SECONDS = Number(process.env.EXAM_DURATION_SECONDS || 20 * 60);
 function normalizePhone(raw) {
@@ -665,6 +666,47 @@ app.post('/api/internal/submit-exam', requireAuth, async (req, res) => {
 
     if (error) throw error;
     return res.json({ ok: true, session: data });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+const BOOKS_DIR = path.join(__dirname, 'books');
+
+app.get('/api/internal/book/status', requireAuth, async (req, res) => {
+  try {
+    const phone = req.auth?.phone;
+    if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
+
+    const pkg = await findActivePackage(phone, 'BOOK');
+    return res.json({
+      ok: true,
+      hasAccess: !!pkg,
+      package: pkg,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/internal/book/pdf', requireAuth, async (req, res) => {
+  try {
+    const phone = req.auth?.phone;
+    if (!phone) return res.status(401).json({ error: 'Missing phone in token' });
+
+    const pkg = await findActivePackage(phone, 'BOOK');
+    if (!pkg) {
+      return res.status(403).json({ error: 'No active book package. Please purchase the book.' });
+    }
+
+    const pdfPath = path.join(BOOKS_DIR, 'IGAZETI-1.pdf');
+    if (!require('fs').existsSync(pdfPath)) {
+      return res.status(404).json({ error: 'Book file not found' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    res.sendFile(pdfPath);
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
