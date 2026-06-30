@@ -32,13 +32,36 @@ export function Library() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [numPages, setNumPages] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activePart, setActivePart] = useState(BOOK_PARTS[0].id);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('kora-book-page');
+    return saved ? parseInt(saved, 10) || 1 : 1;
+  });
+  const [activePart, setActivePart] = useState(() => {
+    const saved = localStorage.getItem('kora-book-part');
+    const part = BOOK_PARTS.find((p) => p.id === saved);
+    return part ? part.id : BOOK_PARTS[0].id;
+  });
+  const [scale, setScale] = useState(() => {
+    const saved = localStorage.getItem('kora-book-scale');
+    return saved ? parseFloat(saved) || 1 : 1;
+  });
   const [pdfError, setPdfError] = useState<string | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
 
   const t = (obj: { en: string; rw: string; fr: string }) =>
     obj[language as keyof typeof obj] || obj.en;
+
+  useEffect(() => {
+    localStorage.setItem('kora-book-page', String(currentPage));
+  }, [currentPage]);
+
+  useEffect(() => {
+    localStorage.setItem('kora-book-part', activePart);
+  }, [activePart]);
+
+  useEffect(() => {
+    localStorage.setItem('kora-book-scale', String(scale));
+  }, [scale]);
 
   useEffect(() => {
     let mounted = true;
@@ -284,6 +307,42 @@ export function Library() {
             </div>
           ) : null}
 
+          {/* Zoom controls */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <button
+              onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
+              disabled={scale <= 0.5}
+              className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground disabled:opacity-30 hover:bg-muted/70 transition-all"
+              title={language === 'rw' ? 'Gukumira' : language === 'fr' ? 'Zoom arrière' : 'Zoom out'}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+              </svg>
+            </button>
+
+            <span className="text-xs font-semibold text-foreground min-w-[3rem] text-center tabular-nums">
+              {Math.round(scale * 100)}%
+            </span>
+
+            <button
+              onClick={() => setScale((s) => Math.min(2.5, s + 0.25))}
+              disabled={scale >= 2.5}
+              className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground disabled:opacity-30 hover:bg-muted/70 transition-all"
+              title={language === 'rw' ? 'Kugura' : language === 'fr' ? 'Zoom avant' : 'Zoom in'}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setScale(1)}
+              className="rounded-full bg-muted/50 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground hover:bg-muted/70 transition-all"
+            >
+              {language === 'rw' ? 'Isano' : language === 'fr' ? 'Normal' : 'Reset'}
+            </button>
+          </div>
+
           {/* Book pages inline as a reading flow */}
           <div
             className="rounded-3xl border border-border bg-background shadow-sm overflow-hidden"
@@ -319,10 +378,10 @@ export function Library() {
                 >
                   <Page
                     pageNumber={currentPage}
+                    scale={scale}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                     className="max-w-full"
-                    width={Math.min(window.innerWidth - 64, 900)}
                     loading={
                       <div className="flex items-center justify-center py-32">
                         <div className="text-muted-foreground text-sm">Loading page...</div>
