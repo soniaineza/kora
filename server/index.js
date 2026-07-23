@@ -360,8 +360,13 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
 
     if (error) throw error;
 
-    const Flutterwave = require('flutterwave-node-v3');
-    const flw = new Flutterwave(process.env.FLUTTERWAVE_PUBLIC_KEY, process.env.FLUTTERWAVE_SECRET_KEY);
+    const secretKey = process.env.FLUTTERWAVE_SECRET_KEY;
+    const publicKey = process.env.FLUTTERWAVE_PUBLIC_KEY;
+    if (!secretKey || !publicKey) {
+      throw new Error('Flutterwave keys not configured');
+    }
+
+    const fetch = require('node-fetch');
 
     const payload = {
       tx_ref: txRef,
@@ -385,7 +390,16 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
       },
     };
 
-    const response = await flw.Payment.initiate(payload);
+    const fwRes = await fetch('https://api.flutterwave.com/v3/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secretKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const response = await fwRes.json();
     if (response.status !== 'success') {
       throw new Error(response.message || 'Failed to initiate Flutterwave payment');
     }
