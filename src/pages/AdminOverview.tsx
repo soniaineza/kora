@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../i18n';
 import { apiFetch, getApiBase } from '../lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 
 interface Stats {
   totalSales: number;
