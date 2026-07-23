@@ -356,7 +356,6 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
       amount_rwf: plan.amountRwf,
       status: 'pending',
       payment_reference: txRef,
-      flutterwave_tx_ref: txRef,
     });
 
     if (error) throw error;
@@ -462,12 +461,6 @@ app.post('/webhooks/flutterwave', async (req, res) => {
 
     if (event === 'charge.completed' || ['successful', 'success'].includes(status)) {
       const pkg = await activatePackage(txRef);
-      if (flwRef) {
-        await supabaseAdmin
-          .from('user_packages')
-          .update({ flutterwave_flw_ref: flwRef })
-          .eq('payment_reference', txRef);
-      }
       return res.json({ ok: true, active: true, package: pkg });
     }
 
