@@ -422,7 +422,7 @@ app.get('/api/payments/flutterwave/verify/:txRef', requireAuth, async (req, res)
     const Flutterwave = require('flutterwave-node-v3');
     const flw = new Flutterwave(process.env.FLUTTERWAVE_PUBLIC_KEY, process.env.FLUTTERWAVE_SECRET_KEY);
 
-    const response = await flw.Transaction.verify({ tx_ref: txRef });
+    const response = await flw.Transaction.verify_by_tx({ tx_ref: txRef });
     if (response.status !== 'success') {
       return res.json({ ok: false, status: response.data?.status || 'unknown' });
     }
