@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './lib/auth';
 import { Layout } from './components/Layout';
+import { AdminLayout } from './components/AdminLayout';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
@@ -15,6 +16,10 @@ import { Exams } from './pages/Exams';
 import { Packages } from './pages/Packages';
 import { Buy } from './pages/Buy';
 import { Verify } from './pages/Verify';
+import { AdminOverview } from './pages/AdminOverview';
+import { AdminSales } from './pages/AdminSales';
+import { UserDashboard } from './pages/UserDashboard';
+
 export function App() {
   return (
     <AuthProvider>
@@ -33,6 +38,12 @@ export function App() {
           <Route path="stories" element={<SuccessStories />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="dashboard" element={<UserDashboard />} />
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminOverview />} />
+          <Route path="sales" element={<AdminSales />} />
         </Route>
       </Routes>
     </AuthProvider>

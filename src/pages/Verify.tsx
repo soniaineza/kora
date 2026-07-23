@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
@@ -18,18 +18,12 @@ export function Verify() {
   const { language } = useLanguage();
 
   const packageKey = (q.get('package') || 'STARTER') as PlanKey;
-  const paymentSessionId = q.get('paymentSession');
+  const txRef = q.get('tx_ref') || q.get('paymentSession');
   const apiBase = getApiBase();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  const title = language === 'rw' ? 'Kwishyura' : 'Payment Verification';
-  const subtitle =
-    language === 'rw'
-      ? 'Tegereze akanya gato ko kwishyura kwanyu kwemezwa.'
-      : 'Please wait a moment while your payment is being verified.';
 
   const handleContinue = useCallback(async () => {
     if (packageKey === 'BOOK') {
@@ -70,15 +64,15 @@ export function Verify() {
     }
   }, [apiBase, language, navigate, packageKey]);
 
-  React.useEffect(() => {
-    if (!paymentSessionId || isSuccess) return;
+  useEffect(() => {
+    if (!txRef || isSuccess) return;
 
     const checkStatus = async () => {
       try {
         const token = localStorage.getItem('kora-jwt');
         if (!token) return;
 
-        const res = await fetch(`${apiBase}/api/internal/active-package?plan=${encodeURIComponent(packageKey)}`, {
+        const res = await fetch(`${apiBase}/api/payments/flutterwave/verify/${encodeURIComponent(txRef)}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -89,7 +83,7 @@ export function Verify() {
           }
         }
       } catch {
-        // Polling will try again on the next interval.
+        // Polling will try again
       }
     };
 
@@ -99,36 +93,22 @@ export function Verify() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [paymentSessionId, packageKey, apiBase, isSuccess]);
+  }, [txRef, packageKey, apiBase, isSuccess]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSuccess && !loading) {
       const timer = window.setTimeout(() => {
         handleContinue();
       }, 1500);
-
-      // Cleanup is handled by the return statement below.
-
       return () => window.clearTimeout(timer);
     }
   }, [handleContinue, isSuccess, loading]);
 
-  // Demo: simulate success by calling the webhook (ONLY FOR DEMO)
-  async function simulateSuccess() {
-    try {
-      await fetch(`${apiBase}/webhooks/mtn`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payment_reference: paymentSessionId,
-          status: 'success'
-        })
-      });
-      // Polling will pick it up
-    } catch (e) {
-      setError('Simulation failed');
-    }
-  }
+  const title = language === 'rw' ? 'Kwishyura' : 'Payment Verification';
+  const subtitle =
+    language === 'rw'
+      ? 'Tegereze akanya gato ko kwishyura kwanyu kwemezwa.'
+      : 'Please wait a moment while your payment is being verified.';
 
   return (
     <>
@@ -139,8 +119,8 @@ export function Verify() {
             {isSuccess ? (
               <div className="animate-in fade-in zoom-in duration-500">
                  <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-                   <ShieldCheck size={40} />
-                 </div>
+                  <ShieldCheck size={40} />
+                </div>
                 <h2 className="text-2xl font-heading font-extrabold text-foreground mb-2">
                   {language === 'rw' ? 'Kwishyura kwagenze neza!' : 'Payment Successful!'}
                 </h2>
@@ -175,24 +155,24 @@ export function Verify() {
                 </h2>
                 <p className="text-sm text-muted-foreground mb-8">
                   {language === 'rw'
-                    ? 'Emeza kwishyura kuri telefone yawe. Turahita tubona ko bishyuwe.'
-                    : 'Please confirm the payment on your phone. We will automatically detect when it is complete.'}
+                    ? 'Emeza kwishyura kuri telefono yawe. Turahita tubona ko bishyuwe.'
+                    : 'Please complete the payment on Flutterwave. We will automatically detect when it is complete.'}
                 </p>
                 
                 {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
 
                 <div className="flex flex-col gap-3">
                   <button
-                    onClick={simulateSuccess}
+                    onClick={() => window.location.reload()}
                     className="text-xs text-primary font-medium hover:underline"
                   >
-                    [Demo] Simulate Success
+                    {language === 'rw' ? 'Ongera ubeho' : 'Refresh status'}
                   </button>
                   <button
                     onClick={() => navigate('/packages')}
                     className="text-xs text-muted-foreground hover:underline"
                   >
-                    Cancel and go back
+                    {language === 'rw' ? 'Genda inyuma' : 'Cancel and go back'}
                   </button>
                 </div>
               </div>
@@ -203,4 +183,3 @@ export function Verify() {
     </>
   );
 }
-

@@ -10,7 +10,7 @@ export function Nav() {
 
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isHome = location.pathname === '/';
   
   // Use localStorage for custom OTP auth state
@@ -24,7 +24,6 @@ export function Nav() {
       setIsLoggedIn(!!localStorage.getItem('kora-jwt'));
       setProfile(getStoredProfile());
     };
-
     
     window.addEventListener('storage', checkAuth);
     const interval = setInterval(checkAuth, 1000);
@@ -56,7 +55,6 @@ export function Nav() {
           </span>
         </Link>
 
-      
         <div className="hidden md:flex items-center gap-10 text-sm font-medium text-muted-foreground">
           <a
             href={hashLink('how')}
@@ -100,11 +98,15 @@ export function Nav() {
             </Link>
           ) : (
             <div className="flex items-center gap-3">
+              <Link
+                to="/dashboard"
+                className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-foreground">
+                {language === 'rw' ? 'Dahibora' : language === 'fr' ? 'Tableau' : 'Dashboard'}
+              </Link>
               <img
                 src={profile?.avatarUrl || getStoredProfile()?.avatarUrl || ''}
                 alt=""
                 className="h-8 w-8 rounded-full border border-border object-cover ring-2 ring-green-500"
-
               />
               <button
                 onClick={handleLogout}
@@ -112,7 +114,6 @@ export function Nav() {
                 {t.nav.logout}
               </button>
             </div>
-
           )}
 
         </div>
@@ -139,57 +140,63 @@ export function Nav() {
         className="md:hidden flex flex-col gap-2 border-t border-border bg-background/95 px-6 py-4 shadow-lg backdrop-blur-xl"
         onClick={() => setIsOpen(false)}>
         
-          <a
-          href={hashLink('how')}
+        <a
+        href={hashLink('how')}
+        className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
+        
+          {t.nav.how}
+        </a>
+        <a
+        href={hashLink('traffic-laws')}
+        className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
+        
+          {t.nav.laws}
+        </a>
+        <Link
+          to="/packages"
           className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-          
-            {t.nav.how}
-          </a>
-          <a
-          href={hashLink('traffic-laws')}
+          {t.nav.packages}
+        </Link>
+        <Link
+          to="/library"
           className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-          
-            {t.nav.laws}
-          </a>
-          <Link
-            to="/packages"
-            className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-            {t.nav.packages}
-          </Link>
-          <Link
-            to="/library"
-            className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-            {t.nav.library}
-          </Link>
-          
-          {!isLoggedIn ? (
-            <>
-              <Link
-                to="/login"
-                className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-                {t.nav.login}
-              </Link>
-              <Link
-                to="/register"
-                className="py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
-                {t.nav.createAccount}
-              </Link>
-            </>
-          ) : (
+          {t.nav.library}
+        </Link>
+        
+        {!isLoggedIn ? (
+          <>
+            <Link
+              to="/login"
+              className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
+              {t.nav.login}
+            </Link>
+            <Link
+              to="/register"
+              className="py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
+              {t.nav.createAccount}
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/dashboard"
+              className="border-b border-border/50 py-3 text-sm font-medium transition-colors duration-300 hover:text-primary">
+              {language === 'rw' ? 'Dahibora' : language === 'fr' ? 'Tableau' : 'Dashboard'}
+            </Link>
             <button
               onClick={handleLogout}
               className="py-3 text-left text-sm font-medium transition-colors duration-300 hover:text-primary">
               {t.nav.logout}
             </button>
-          )}
+          </>
+        )}
 
-          <a
-            href={hashLink('quiz')}
-            className="mt-2 rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground transition-colors duration-300 hover:bg-primary/90">
-            {t.nav.start}
-          </a>
-        </div>
+        <a
+          href={hashLink('quiz')}
+          className="mt-2 rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground transition-colors duration-300 hover:bg-primary/90">
+          {t.nav.start}
+        </a>
+      </div>
       }
     </nav>);
-
 }

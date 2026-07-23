@@ -205,7 +205,7 @@ export function Packages() {
                 </div>
 
                 <Link
-                  to={`/buy?package=${encodeURIComponent(pkg.key)}&network=mtn`}
+                  to={`/buy?package=${encodeURIComponent(pkg.key)}`}
                   className={`w-full inline-flex items-center justify-center rounded-full py-2.5 text-xs font-bold transition-all duration-300 hover:-translate-y-0.5 ${
                     pkg.highlight
                       ? 'bg-white text-primary hover:bg-gray-50'
@@ -230,29 +230,21 @@ export function Packages() {
           {/* Payment Info Card */}
           <div className="max-w-2xl mx-auto bg-muted rounded-2xl border border-border p-8 text-center">
             <h3 className="text-lg font-heading font-bold text-foreground mb-4">
-              {language === 'rw' ? 'Imyishyurire: MTN&AIRTEL' : 'Payment: MTN & Airtel'}
+              {language === 'rw' ? 'Imyishyurire: Flutterwave' : 'Payment: Flutterwave'}
             </h3>
             
             <div className="mb-6">
               <p className="text-sm text-muted-foreground mb-4">
                 {language === 'rw' 
-                  ? 'Shyira hano hasi nomero wishyuriraho'
-                  : 'Enter your payment number below'}
+                  ? 'Uzakwishyura n\'imodoka z\'ibicuruzwa by\'umurimo bya Flutterwave (MTN/Airtel Mobile Money, Amakaradi, Banki)'
+                  : 'Pay via Flutterwave (MTN/Airtel Mobile Money, Card, Bank)'}
               </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background border border-border">
-                  <span className="text-sm font-semibold text-yellow-600">MTN</span>
-                </span>
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background border border-border">
-                  <span className="text-sm font-semibold text-red-600">Airtel</span>
-                </span>
-              </div>
             </div>
 
             <p className="text-xs text-muted-foreground">
               {language === 'rw'
-                ? 'Uramukora na code uzajya ukureba kuri sms. Icyerekezo cyahabwa igihe cyose mugiye gukora ikizamini.'
-                : 'You will receive an SMS code. Use it anytime to start practicing with your exam package.'}
+                ? 'Uramukora na confirmation uzajya ukureba kuri email/phone. Icyerekezo cyahabwa igihe cyose mugiye gukora ikizamini.'
+                : 'You will receive a confirmation via email/phone. Use it anytime to start practicing with your exam package.'}
             </p>
           </div>
         </div>

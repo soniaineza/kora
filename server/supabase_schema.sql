@@ -58,6 +58,11 @@ create table if not exists public.user_packages (
   remaining_attempts integer,
   unlimited boolean not null default false,
 
+  -- Flutterwave integration
+  flutterwave_tx_ref text,
+  flutterwave_flw_ref text,
+  payment_method text DEFAULT 'flutterwave',
+
   -- Some deployments may have older schema; keep amount field aligned
   amount_rwf integer, 
 
@@ -73,6 +78,7 @@ for each row execute function public.set_updated_at();
 
 -- Helpful index
 create index if not exists idx_user_packages_phone_status on public.user_packages(phone, status);
+create index if not exists idx_user_packages_flutterwave_tx_ref on public.user_packages(flutterwave_tx_ref);
 
 -- Exam sessions (attempt tracking + expiry)
 -- Each session is created when the user starts an exam.

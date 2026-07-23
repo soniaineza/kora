@@ -408,7 +408,8 @@ export function Quiz({
       if (storageKey) {
         localStorage.setItem(storageKey, JSON.stringify({ startedAtMs: now }));
       }
-    } catch {
+    } catch (_e) {
+      // ignore localStorage errors
     }
     setTimerArmed(true);
   };
