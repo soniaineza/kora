@@ -335,78 +335,154 @@ app.get('/api/payments/mtn/start', methodNotAllowed);
 app.get('/api/payments/airtel/start', methodNotAllowed);
 
 app.post('/api/payments/:network/start', requireAuth, async (req, res) => {
-  try {
-    const network = String(req.params.network || '').toLowerCase();
-    if (!['mtn', 'airtel'].includes(network)) {
-      return res.status(400).json({ error: 'Unsupported payment network' });
-    }
+  return res.status(410).json({ error: 'Legacy MTN/Airtel endpoints removed. Use Flutterwave.' });
+});
 
+app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => {
+  try {
     const plan = getPlan(req.body?.packageKey);
     if (!plan) {
       return res.status(400).json({ error: 'Unknown package' });
     }
 
     const phone = req.auth.phone;
-    const paymentSessionId = `ps_${network}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const txRef = `fw_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
     const { error } = await supabaseAdmin.from('user_packages').insert({
-      id: paymentSessionId,
+      id: txRef,
       phone,
       package_key: plan.key,
-      network,
+      network: 'flutterwave',
       amount_rwf: plan.amountRwf,
       status: 'pending',
-      payment_reference: paymentSessionId,
+      payment_reference: txRef,
+      flutterwave_tx_ref: txRef,
     });
 
     if (error) throw error;
 
-    let activated = false;
-    if (paymentMode !== 'live') {
-      await activatePackage(paymentSessionId);
-      activated = true;
+    const Flutterwave = require('flutterwave-node-v3');
+    const flw = new Flutterwave(process.env.FLUTTERWAVE_PUBLIC_KEY, process.env.FLUTTERWAVE_SECRET_KEY);
+
+    const payload = {
+      tx_ref: txRef,
+      amount: plan.amountRwf,
+      currency: 'RWF',
+      redirect_url: process.env.FLUTTERWAVE_CALLBACK_URL,
+      payment_options: 'mobilemoney',
+      customer: {
+        email: `${phone}@kora.rw`,
+        phone_number: phone,
+        name: 'KORA User',
+      },
+      customizations: {
+        title: 'KORA Driving Exam',
+        description: `${plan.key} Package`,
+        logo: 'https://kora-nine-phi.vercel.app/logo.png',
+      },
+      meta: {
+        package_key: plan.key,
+        phone,
+      },
+    };
+
+    const response = await flw.Payment.initiate(payload);
+    if (response.status !== 'success') {
+      throw new Error(response.message || 'Failed to initiate Flutterwave payment');
     }
 
     return res.json({
       ok: true,
-      paymentSessionId,
+      paymentLink: response.data.link,
+      txRef: txRef,
       amountRwf: plan.amountRwf,
-      demoActivated: activated,
     });
   } catch (e) {
-    console.error('PAYMENT START ERROR:', e);
+    console.error('FLUTTERWAVE INITIATE ERROR:', e);
     return res.status(e.statusCode || 500).json({ error: e.message });
   }
 });
 
-app.post('/webhooks/:network', async (req, res) => {
+app.get('/api/payments/flutterwave/verify/:txRef', requireAuth, async (req, res) => {
   try {
-    const network = String(req.params.network || '').toLowerCase();
-    if (!['mtn', 'airtel'].includes(network)) {
-      return res.status(400).json({ error: 'Unsupported payment network' });
+    const txRef = req.params.txRef;
+    const Flutterwave = require('flutterwave-node-v3');
+    const flw = new Flutterwave(process.env.FLUTTERWAVE_PUBLIC_KEY, process.env.FLUTTERWAVE_SECRET_KEY);
+
+    const response = await flw.Transaction.verify({ tx_ref: txRef });
+    if (response.status !== 'success') {
+      return res.json({ ok: false, status: response.data?.status || 'unknown' });
     }
 
-    const reference = req.body?.payment_reference || req.body?.paymentSessionId || req.body?.reference;
-    const status = String(req.body?.status || '').toLowerCase();
-
-    if (!reference) {
-      return res.status(400).json({ error: 'payment_reference is required' });
-    }
-
-    if (['success', 'successful', 'paid', 'completed'].includes(status)) {
-      const pkg = await activatePackage(reference);
+    const status = response.data?.status?.toLowerCase();
+    if (['successful', 'success'].includes(status)) {
+      const pkg = await activatePackage(txRef);
       return res.json({ ok: true, active: true, package: pkg });
     }
 
-    const { error } = await supabaseAdmin
-      .from('user_packages')
-      .update({ status: status || 'failed' })
-      .eq('payment_reference', reference);
-
-    if (error) throw error;
-    return res.json({ ok: true, active: false });
+    return res.json({ ok: false, status });
   } catch (e) {
-    return res.status(e.statusCode || 500).json({ error: e.message });
+    console.error('FLUTTERWAVE VERIFY ERROR:', e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/webhooks/flutterwave', async (req, res) => {
+  try {
+    const secretHash = process.env.FLUTTERWAVE_ENCRYPTION_KEY;
+
+    if (secretHash) {
+      const crypto = require('crypto');
+      const verifHash = req.headers['verif-hash'];
+      const flwSignature = req.headers['x-flw-signature'];
+
+      if (verifHash) {
+        if (verifHash !== secretHash) {
+          console.error('Flutterwave webhook: Invalid verif-hash');
+          return res.status(401).json({ error: 'Invalid verif-hash' });
+        }
+      } else if (flwSignature) {
+        const hash = crypto.createHmac('sha256', secretHash).update(JSON.stringify(req.body)).digest('hex');
+        if (hash !== flwSignature) {
+          console.error('Flutterwave webhook: Invalid x-flw-signature');
+          return res.status(401).json({ error: 'Invalid signature' });
+        }
+      }
+    }
+
+    const event = req.body?.event;
+    const data = req.body?.data;
+    const txRef = data?.tx_ref;
+    const status = data?.status?.toLowerCase();
+    const flwRef = data?.flw_ref;
+
+    if (!txRef) {
+      return res.status(400).json({ error: 'tx_ref missing' });
+    }
+
+    if (event === 'charge.completed' || ['successful', 'success'].includes(status)) {
+      const pkg = await activatePackage(txRef);
+      if (flwRef) {
+        await supabaseAdmin
+          .from('user_packages')
+          .update({ flutterwave_flw_ref: flwRef })
+          .eq('payment_reference', txRef);
+      }
+      return res.json({ ok: true, active: true, package: pkg });
+    }
+
+    if (['failed', 'cancelled'].includes(status)) {
+      await supabaseAdmin
+        .from('user_packages')
+        .update({ status })
+        .eq('payment_reference', txRef);
+      return res.json({ ok: true, active: false });
+    }
+
+    return res.json({ ok: true, message: 'Event received', event, status });
+  } catch (e) {
+    console.error('FLUTTERWAVE WEBHOOK ERROR:', e);
+    return res.status(500).json({ error: e.message });
   }
 });
 

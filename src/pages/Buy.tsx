@@ -8,8 +8,6 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-type Network = 'mtn' | 'airtel';
-
 type PlanDef = {
   key: string;
   titleEn: string;
@@ -36,22 +34,20 @@ export function Buy() {
   const { language } = useLanguage();
 
   const packageKey = (q.get('package') || 'STARTER') as string;
-  const network = (q.get('network') || 'mtn') as Network;
 
   const plan = useMemo(() => PLAN_MAP[packageKey] ?? PLAN_MAP.STARTER, [packageKey]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
 
   const title = language === 'rw' ? 'Kwishyura' : language === 'fr' ? 'Paiement complet' : 'Complete Payment';
   const subtitle =
     language === 'rw'
-      ? `Tegura umubare wa telefone hanyuma uhitemo MTN/Airtel kugira ubone code.`
+      ? `Tegura umubare wa telefone hanyuma uhitemo Flutterwave kugira ubone code.`
       : language === 'fr'
-        ? 'Entrez le numéro de téléphone que vous utiliserez pour MTN/Airtel, puis confirmez pour recevoir votre code de paiement.'
-        : 'Enter the phone number you will use for MTN/Airtel, then confirm to get your payment code.';
+        ? 'Entrez votre numéro de téléphone, puis confirmez pour être redirigé vers Flutterwave.'
+        : 'Enter your phone number, then confirm to be redirected to Flutterwave.';
 
   async function handleStart() {
     setLoading(true);
@@ -61,24 +57,16 @@ export function Buy() {
       const token = localStorage.getItem('kora-jwt');
 
       if (!token) {
-        const next = `/buy?package=${encodeURIComponent(packageKey)}&network=${encodeURIComponent(network)}&from=buy`;
+        const next = `/buy?package=${encodeURIComponent(packageKey)}&from=buy`;
         navigate(`/register?next=${encodeURIComponent(next)}`);
         return;
       }
-const apiBase = getApiBase()?.trim();
 
-if (!apiBase) {
-  throw new Error('API base URL not configured');
-}
+      const apiBase = getApiBase()?.trim();
+      if (!apiBase) throw new Error('API base URL not configured');
+      const cleanBase = apiBase.replace(/\/$/, '');
 
-const cleanBase = apiBase.replace(/\/$/, '');
-
-const paymentUrl = `${cleanBase}/api/payments/${network}/start`;
-
-console.log('API_BASE =', cleanBase);
-console.log('PAYMENT_URL =', paymentUrl);
-
-      const res = await fetch(paymentUrl, {
+      const res = await fetch(`${cleanBase}/api/payments/flutterwave/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,15 +90,16 @@ console.log('PAYMENT_URL =', paymentUrl);
         throw new Error(data?.error || `Request failed (${res.status})`);
       }
 
-      setPaymentSessionId(data.paymentSessionId);
+      const link = data.paymentLink || data.payment_link;
+      if (link) {
+        window.location.href = link;
+        return;
+      }
 
-      navigate(
-        `/verify?paymentSession=${encodeURIComponent(data.paymentSessionId)}&package=${encodeURIComponent(packageKey)}&phone=${encodeURIComponent(phoneNumber)}`
-      );
+      throw new Error('No payment link returned');
 
     } catch (e: any) {
       setError(e?.message || 'Payment failed');
-    } finally {
       setLoading(false);
     }
   }
@@ -118,7 +107,6 @@ console.log('PAYMENT_URL =', paymentUrl);
   return (
     <>
       <PageHeader title={title} subtitle={subtitle} />
-
       <section className="bg-background py-10">
         <div className="max-w-xl mx-auto px-6">
           <div className="rounded-3xl border border-border bg-background shadow-sm p-6">
@@ -146,7 +134,7 @@ console.log('PAYMENT_URL =', paymentUrl);
               </div>
 
               <div className="text-xs text-muted-foreground">
-                Network: <b>{network.toUpperCase()}</b>
+                Payment: <b>Flutterwave (Mobile Money, Card, Bank)</b>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
@@ -159,12 +147,6 @@ console.log('PAYMENT_URL =', paymentUrl);
               >
                 {loading ? (language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...') : language === 'rw' ? 'Tangira Kwishyura' : language === 'fr' ? 'Commencer le paiement' : 'Start Payment'}
               </button>
-
-              {paymentSessionId && (
-                <p className="text-xs text-muted-foreground">
-                  Session: {paymentSessionId}
-                </p>
-              )}
 
             </div>
           </div>
