@@ -369,9 +369,10 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
     const fetch = require('node-fetch');
 
     const origin = req.headers.origin || req.headers.referer || '';
+    const fallback = (process.env.FLUTTERWAVE_CALLBACK_URL || '').replace(/\/verify\s*$/i, '');
     const baseUrl = origin
       ? origin.replace(/\/+$/, '')
-      : (process.env.FLUTTERWAVE_CALLBACK_URL || '').replace(/\/verify\s*$/i, '');
+      : fallback;
     const redirectUrl = `${baseUrl}/verify`;
 
     const payload = {
@@ -388,7 +389,7 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
       customizations: {
         title: 'KORA Driving Exam',
         description: `${plan.key} Package`,
-        logo: 'https://kora-nine-phi.vercel.app/logo.png',
+        logo: `${baseUrl}/logo.png`,
       },
       meta: {
         package_key: plan.key,
