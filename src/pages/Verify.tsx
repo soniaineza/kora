@@ -17,16 +17,17 @@ export function Verify() {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const packageKey = (q.get('package') || 'STARTER') as PlanKey;
   const txRef = q.get('tx_ref') || q.get('paymentSession');
   const apiBase = getApiBase();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [verifiedPackage, setVerifiedPackage] = useState<PlanKey | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleContinue = useCallback(async () => {
-    if (packageKey === 'BOOK') {
+    if (verifiedPackage === 'BOOK') {
       navigate('/library');
       return;
     }
@@ -41,28 +42,29 @@ export function Verify() {
         return;
       }
 
+      const planKey = verifiedPackage || 'STARTER';
       const res = await fetch(`${apiBase}/api/internal/start-exam`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ plan: packageKey })
+        body: JSON.stringify({ plan: planKey })
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Cannot start exam');
 
-      const sessionId = data?.sessionId;
-      if (!sessionId) throw new Error('Missing sessionId');
+      const newSessionId = data?.sessionId;
+      if (!newSessionId) throw new Error('Missing sessionId');
 
-      navigate(`/exams?plan=${encodeURIComponent(packageKey)}&start=1&sessionId=${encodeURIComponent(sessionId)}`);
+      navigate(`/exams?plan=${encodeURIComponent(planKey)}&start=1&sessionId=${encodeURIComponent(newSessionId)}`);
     } catch (e: any) {
       setError(e?.message || 'Verification failed');
     } finally {
       setLoading(false);
     }
-  }, [apiBase, language, navigate, packageKey]);
+  }, [apiBase, language, navigate, verifiedPackage]);
 
   useEffect(() => {
     if (!txRef || isSuccess) return;
@@ -79,6 +81,7 @@ export function Verify() {
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
           if (data.active) {
+            setVerifiedPackage(data.package?.package_key || 'STARTER');
             setIsSuccess(true);
           }
         }
@@ -93,7 +96,7 @@ export function Verify() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [txRef, packageKey, apiBase, isSuccess]);
+  }, [txRef, apiBase, isSuccess]);
 
   useEffect(() => {
     if (isSuccess && !loading) {
@@ -125,7 +128,7 @@ export function Verify() {
                   {language === 'rw' ? 'Kwishyura kwagenze neza!' : 'Payment Successful!'}
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                  {packageKey === 'BOOK'
+                  {verifiedPackage === 'BOOK'
                     ? (language === 'rw'
                       ? 'Igitabo cyawe kirashobora gusomwa noneho.'
                       : language === 'fr'
@@ -140,7 +143,7 @@ export function Verify() {
                   disabled={loading}
                   className="w-full bg-primary text-primary-foreground rounded-full py-4 text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
-                  {loading ? '...' : (packageKey === 'BOOK'
+                  {loading ? '...' : (verifiedPackage === 'BOOK'
                     ? (language === 'rw' ? 'Soma Igitabo' : language === 'fr' ? 'Lire le livre' : 'Read the Book')
                     : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam'))}
                 </button>
