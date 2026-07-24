@@ -368,11 +368,17 @@ app.post('/api/payments/flutterwave/initiate', requireAuth, async (req, res) => 
 
     const fetch = require('node-fetch');
 
+    const origin = req.headers.origin || req.headers.referer || '';
+    const baseUrl = origin
+      ? origin.replace(/\/+$/, '')
+      : (process.env.FLUTTERWAVE_CALLBACK_URL || '').replace(/\/verify\s*$/i, '');
+    const redirectUrl = `${baseUrl}/verify`;
+
     const payload = {
       tx_ref: txRef,
       amount: plan.amountRwf,
       currency: 'RWF',
-      redirect_url: process.env.FLUTTERWAVE_CALLBACK_URL,
+      redirect_url: redirectUrl,
       payment_options: 'mobilemoney',
       customer: {
         email: `${phone}@kora.rw`,
