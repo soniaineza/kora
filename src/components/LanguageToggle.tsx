@@ -7,7 +7,6 @@ const labels: Record<Language, string> = {
   rw: 'RW',
   fr: 'FR'
 };
-
 export function LanguageToggle() {
   const { language, setLanguage, t } = useLanguage();
   return (

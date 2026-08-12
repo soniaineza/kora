@@ -230,21 +230,21 @@ export function Packages() {
           {/* Payment Info Card */}
           <div className="max-w-2xl mx-auto bg-muted rounded-2xl border border-border p-8 text-center">
             <h3 className="text-lg font-heading font-bold text-foreground mb-4">
-              {language === 'rw' ? 'Imyishyurire: Flutterwave' : 'Payment: Flutterwave'}
+              {language === 'rw' ? 'Uko kwishyura bikorwa' : 'How Payment Works'}
             </h3>
             
             <div className="mb-6">
               <p className="text-sm text-muted-foreground mb-4">
                 {language === 'rw' 
-                  ? 'Uzakwishyura n\'imodoka z\'ibicuruzwa by\'umurimo bya Flutterwave (MTN/Airtel Mobile Money, Amakaradi, Banki)'
-                  : 'Pay via Flutterwave (MTN/Airtel Mobile Money, Card, Bank)'}
+                  ? 'Hitamo paketi, fungura agakururu, hanyuma wishyure (MTN MoMo, Airtel Money, cyangwa mu kigo). Paketi izaboneka nyuma yuko umuyobozi amaze kwemeza.'
+                  : 'Choose a package, place an order, then pay (MTN MoMo, Airtel Money, or in person). Your package is activated once an administrator confirms your payment.'}
               </p>
             </div>
 
             <p className="text-xs text-muted-foreground">
               {language === 'rw'
-                ? 'Uramukora na confirmation uzajya ukureba kuri email/phone. Icyerekezo cyahabwa igihe cyose mugiye gukora ikizamini.'
-                : 'You will receive a confirmation via email/phone. Use it anytime to start practicing with your exam package.'}
+                ? 'Uzakirana SMS yo kwemeza kode yawe. Ushobora gukomeza imyitozo mu gihe cyawe.'
+                : 'You will receive a confirmation message once activated. Use your package anytime to start practicing.'}
             </p>
           </div>
         </div>

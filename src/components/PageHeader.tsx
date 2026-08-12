@@ -3,10 +3,6 @@ export function PageHeader({
   eyebrow,
   title,
   subtitle
-
-
-
-
 }: {eyebrow?: string;title: string;subtitle?: string;}) {
   return (
     <section className="bg-muted py-16 md:py-20 border-b border-border">

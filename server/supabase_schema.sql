@@ -1,13 +1,6 @@
 -- Supabase schema for KORA payment/activation + OTP
--- Run in Supabase SQL editor (the project: diffxypkosxukoxzfsew)
-
--- NOTE:
--- 1) Enable required extensions
--- 2) Tables created for:
---    - phone_verifications (OTP storage)
---    - user_packages (package activation state)
---
--- After creating, ensure your RLS policies align with how you access data.
+-- Run in Supabase SQL editor (project: diffxypkosxukoxzfsew)
+-- This version uses `payment_reference` consistently (no Flutterwave-specific columns)
 
 create extension if not exists pgcrypto;
 
@@ -22,7 +15,6 @@ create table if not exists public.phone_verifications (
   updated_at timestamptz not null default now()
 );
 
--- keep updated_at fresh
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
 begin
@@ -37,11 +29,6 @@ before update on public.phone_verifications
 for each row execute function public.set_updated_at();
 
 -- Package activations for users
--- package_key examples (align with frontend/backend):
--- STARTER, BASIC, STANDARD, MASTER, PREMIUM(=3000), PRO, UNLIMITED
--- Package purchase records (1 row per purchase)
--- NOTE: existing app code uses `user_packages` for activation state.
--- We keep the table name to avoid widespread breaking changes, but treat each row as a purchase.
 create table if not exists public.user_packages (
   id text primary key,
   phone text not null,
@@ -49,40 +36,26 @@ create table if not exists public.user_packages (
   network text,
   amount_rwf integer,
   status text not null default 'pending',
-  payment_reference text,
+  payment_reference text,           -- unified payment reference
   activated_at timestamptz,
   expires_at timestamptz,
-
-  -- attempt accounting per purchase
   total_attempts integer,
   remaining_attempts integer,
   unlimited boolean not null default false,
-
-  -- Flutterwave integration
-  flutterwave_tx_ref text,
-  flutterwave_flw_ref text,
-  payment_method text DEFAULT 'flutterwave',
-
-  -- Some deployments may have older schema; keep amount field aligned
-  amount_rwf integer, 
-
+  payment_method text DEFAULT 'manual',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 
 drop trigger if exists trg_user_packages_updated_at on public.user_packages;
 create trigger trg_user_packages_updated_at
 before update on public.user_packages
 for each row execute function public.set_updated_at();
 
--- Helpful index
 create index if not exists idx_user_packages_phone_status on public.user_packages(phone, status);
-create index if not exists idx_user_packages_flutterwave_tx_ref on public.user_packages(flutterwave_tx_ref);
+create index if not exists idx_user_packages_payment_reference on public.user_packages(payment_reference);
 
 -- Exam sessions (attempt tracking + expiry)
--- Each session is created when the user starts an exam.
--- Requires sessionId to access the quiz to prevent bypass.
 create table if not exists public.exam_sessions (
   id text primary key,
   phone text not null,
@@ -93,7 +66,6 @@ create table if not exists public.exam_sessions (
   score integer,
   total_questions integer,
   completed_at timestamptz,
-  -- optional: bind to which activation gave attempts
   user_package_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -111,20 +83,16 @@ for each row execute function public.set_updated_at();
 
 create index if not exists idx_exam_sessions_phone_active on public.exam_sessions(phone, status);
 
--- Attempt audit trail (exactly when/which exam consumed an attempt)
+-- Attempt audit trail
 create table if not exists public.attempt_history (
   id bigserial primary key,
   user_id text not null,
   user_package_id text not null,
   exam_session_id text not null,
   plan text not null,
-
-  -- optional: keep examId if you later add per-question exam mapping
   exam_id text,
-
   attempt_consumed boolean not null default false,
   attempt_consumed_at timestamptz not null default now(),
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -136,6 +104,3 @@ for each row execute function public.set_updated_at();
 
 create index if not exists idx_attempt_history_user_package on public.attempt_history(user_package_id);
 create index if not exists idx_attempt_history_user on public.attempt_history(user_id);
-
-
-

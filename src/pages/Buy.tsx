@@ -34,20 +34,102 @@ export function Buy() {
   const { language } = useLanguage();
 
   const packageKey = (q.get('package') || 'STARTER') as string;
-
   const plan = useMemo(() => PLAN_MAP[packageKey] ?? PLAN_MAP.STARTER, [packageKey]);
 
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ orderId: string } | null>(null);
+  const [phone, setPhone] = useState('');
 
-  const title = language === 'rw' ? 'Kwishyura' : language === 'fr' ? 'Paiement complet' : 'Complete Payment';
+  const title = language === 'rw' ? 'Kwishyura' : language === 'fr' ? 'Paiement' : 'Payment';
   const subtitle =
     language === 'rw'
-      ? `Tegura umubare wa telefone hanyuma uhitemo Flutterwave kugira ubone code.`
+      ? 'Hitamo paketi kugira ngo ufungure agakururu. Uzakabona ikizamini nyuma y\'uko kwishyura byemejwe.'
       : language === 'fr'
-        ? 'Entrez votre numéro de téléphone, puis confirmez pour être redirigé vers Flutterwave.'
-        : 'Enter your phone number, then confirm to be redirected to Flutterwave.';
+        ? 'Choisissez votre forfait et passez commande. Votre accès est activé une fois le paiement confirmé.'
+        : 'Choose your package and place an order. Your access is activated once payment is confirmed.';
+  const packageLabel = language === 'rw' ? 'Paketi' : language === 'fr' ? 'Forfait' : 'Package';
+  const placeOrder =
+    language === 'rw' ? 'Fungura Agakururu' : language === 'fr' ? 'Passer commande' : 'Place Order';
+  const payNow =
+    language === 'rw'
+      ? 'Kwishyura ubu (MoMo)'
+      : language === 'fr'
+        ? 'Payer maintenant (MoMo)'
+        : 'Pay now (MoMo)';
+  const phoneLabel =
+    language === 'rw' ? 'Numero ya telefone' : language === 'fr' ? 'Numéro de téléphone' : 'Phone number';
+  const phonePlaceholder =
+    language === 'rw' ? 'Urugero: 0788123456' : language === 'fr' ? 'Ex: 0788123456' : 'e.g. 0788123456';
+  const processing =
+    language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...';
+  const howToPay =
+    language === 'rw'
+      ? 'Nyuma yo gusaba agakururu, wishyura amafaranga (MTN MoMo, Airtel Money, cyangwa byaboneka mu kigo). Paketi izaboneka nyuma yuko intrambyi imaze kwemeza.'
+      : language === 'fr'
+        ? "Après avoir passé commande, effectuez votre paiement (MTN MoMo, Airtel Money, ou en personne). Votre forfait sera activé une fois que l'administrateur aura confirmé."
+        : 'After placing the order, make your payment (MTN MoMo, Airtel Money, or in person). Your package is activated once an administrator confirms it.';
+  const howToPayMoMo =
+    language === 'rw'
+      ? 'Andika numero ya telefone, ugukubite mwifuza kuri MoMo. Paketi izafungurwa ako kanya nyuma yo kwemeza.'
+      : language === 'fr'
+        ? 'Saisissez votre numéro, puis approuvez la demande sur votre téléphone. Le forfait est activé automatiquement après confirmation.'
+        : 'Enter your phone number, then approve the request on your phone. Your package activates automatically once confirmed.';
+  const viewStatus =
+    language === 'rw'
+      ? 'Reba agakururu kanyu'
+      : language === 'fr'
+        ? 'Voir ma commande'
+        : 'View my order status';
+
+  async function postOrder(payload: Record<string, string>) {
+    const token = localStorage.getItem('kora-jwt');
+
+    if (!token) {
+      const next = `/buy?package=${encodeURIComponent(packageKey)}`;
+      navigate(`/register?next=${encodeURIComponent(next)}`);
+      return null;
+    }
+
+    const apiBase = getApiBase()?.trim();
+    if (!apiBase) throw new Error('API base URL not configured');
+
+    const res = await fetch(`${apiBase}/api/payments/paypack/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error('Invalid server response');
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.error || `Request failed (${res.status})`);
+    }
+
+    return data;
+  }
+
+  async function handlePayNow() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await postOrder({ packageKey, phone: phone.trim() });
+      if (!data) return;
+      setDone({ orderId: data.orderId || data.txRef });
+    } catch (e: any) {
+      setError(e?.message || 'Failed to start payment');
+      setLoading(false);
+    }
+  }
 
   async function handleStart() {
     setLoading(true);
@@ -57,26 +139,21 @@ export function Buy() {
       const token = localStorage.getItem('kora-jwt');
 
       if (!token) {
-        const next = `/buy?package=${encodeURIComponent(packageKey)}&from=buy`;
+        const next = `/buy?package=${encodeURIComponent(packageKey)}`;
         navigate(`/register?next=${encodeURIComponent(next)}`);
         return;
       }
 
       const apiBase = getApiBase()?.trim();
       if (!apiBase) throw new Error('API base URL not configured');
-      const cleanBase = apiBase.replace(/\/$/, '');
 
-      const res = await fetch(`${cleanBase}/api/payments/flutterwave/initiate`, {
+      const res = await fetch(`${apiBase}/api/payments/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          phone: phoneNumber,
-          packageKey,
-          amountRwf: plan.priceRwf
-        })
+        body: JSON.stringify({ packageKey })
       });
 
       let data;
@@ -90,18 +167,42 @@ export function Buy() {
         throw new Error(data?.error || `Request failed (${res.status})`);
       }
 
-      const link = data.paymentLink || data.payment_link;
-      if (link) {
-        window.location.href = link;
-        return;
-      }
-
-      throw new Error('No payment link returned');
-
+      setDone({ orderId: data.orderId || data.txRef });
     } catch (e: any) {
-      setError(e?.message || 'Payment failed');
+      setError(e?.message || 'Failed to place order');
       setLoading(false);
     }
+  }
+
+  if (done) {
+    return (
+      <>
+        <PageHeader title={title} subtitle={subtitle} />
+        <section className="bg-background py-10">
+          <div className="max-w-xl mx-auto px-6">
+            <div className="rounded-3xl border border-border bg-background shadow-sm p-8 text-center">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-3xl">
+                {'\u2713'}
+              </div>
+              <h2 className="text-xl font-heading font-bold text-foreground mb-2">
+                {language === 'rw' ? 'Agakururu kakuze!' : language === 'fr' ? 'Commande reçue !' : 'Order received!'}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                {language === 'rw' ? 'Umubare wa agakururu:' : language === 'fr' ? 'Référence de commande :' : 'Order reference:'}{' '}
+                <span className="font-mono text-foreground">{done.orderId}</span>
+              </p>
+              <p className="text-sm text-muted-foreground mb-6">{howToPay}</p>
+              <button
+                onClick={() => navigate(`/verify?order=${encodeURIComponent(done.orderId)}`)}
+                className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold"
+              >
+                {viewStatus}
+              </button>
+            </div>
+          </div>
+        </section>
+      </>
+    );
   }
 
   return (
@@ -110,44 +211,61 @@ export function Buy() {
       <section className="bg-background py-10">
         <div className="max-w-xl mx-auto px-6">
           <div className="rounded-3xl border border-border bg-background shadow-sm p-6">
-
             <div className="mb-5 text-sm text-muted-foreground">
-              {language === 'rw' ? 'Pack' : language === 'fr' ? 'Forfait' : 'Package'}:{' '}
+              {packageLabel}:{' '}
               <span className="text-foreground font-semibold">
-                {language === 'rw' ? plan.titleRw : language === 'fr' ? plan.titleEn : plan.titleEn}
+                {language === 'rw' ? plan.titleRw : plan.titleEn}
               </span>
             </div>
 
             <div className="grid gap-4">
-
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-2">
-                  {language === 'rw' ? 'Numero wishyura' : language === 'fr' ? 'Votre numéro de téléphone' : 'Your phone number'}
-                </label>
-
-                <input
-                  className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm"
-                  placeholder="07xxxxxxxx"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                />
+              <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+                {howToPayMoMo}
               </div>
 
-              <div className="text-xs text-muted-foreground">
-                Payment: <b>Flutterwave (Mobile Money, Card, Bank)</b>
+              <div className="grid gap-3">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="pay-phone">
+                  {phoneLabel}
+                </label>
+                <input
+                  id="pay-phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={phonePlaceholder}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
+                />
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handlePayNow}
+                  className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
+                >
+                  {loading ? processing : payNow}
+                </button>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
+
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                <span>{language === 'rw' ? 'cyangwa' : language === 'fr' ? 'ou' : 'or'}</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+                {howToPay}
+              </div>
 
               <button
                 type="button"
                 disabled={loading}
                 onClick={handleStart}
-                className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
+                className="w-full bg-muted text-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
               >
-                {loading ? (language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...') : language === 'rw' ? 'Tangira Kwishyura' : language === 'fr' ? 'Commencer le paiement' : 'Start Payment'}
+                {loading ? processing : placeOrder}
               </button>
-
             </div>
           </div>
         </div>

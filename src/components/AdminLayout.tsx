@@ -6,6 +6,7 @@ import { Layout as BaseLayout } from './Layout';
 const navItems = [
   { path: '/admin', label: { en: 'Overview', rw: 'Ibyifuzo', fr: 'Aperçu' }, icon: '📊' },
   { path: '/admin/sales', label: { en: 'Package Sales', rw: 'Amaguruwe Y\'ibikoresho', fr: 'Ventes de forfaits' }, icon: '💰' },
+  { path: '/admin/orders', label: { en: 'Orders', rw: 'Amagakururu', fr: 'Commandes' }, icon: '📦' },
   { path: '/admin/sessions', label: { en: 'Exam Sessions', rw: 'Amasaha Y\'ibizamini', fr: 'Sessions d\'examen' }, icon: '📝' },
   { path: '/admin/popular', label: { en: 'Most Popular', rw: 'Ikunzwe Cyane', fr: 'Plus populaire' }, icon: '⭐' },
 ];
@@ -61,7 +62,11 @@ export function AdminLayout() {
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
             <div className="flex items-center justify-between h-16 px-6">
               <h1 className="font-heading text-xl font-bold text-foreground">
-                {navItems.find((i) => i.path === location.pathname)?.label[language as keyof typeof navItems[0].label] || navItems[0].label[language as keyof typeof navItems[0].label] || 'Admin'}
+                {(() => {
+                  const current = navItems.find((i) => i.path === location.pathname);
+                  const label = current?.label ?? navItems[0].label;
+                  return label[language as keyof typeof label] ?? 'Admin';
+                })()}
               </h1>
               <div className="text-sm text-muted-foreground">
                 {language === 'rw' ? 'Mwaramutse' : language === 'fr' ? 'Bonjour' : 'Welcome'} Admin

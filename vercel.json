@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://kora-ai-w1um.onrender.com/api/:path*"
+      "destination": "https://kora-2-tats.onrender.com/api/:path*"
     },
     {
       "source": "/webhooks/:path*",
-      "destination": "https://kora-ai-w1um.onrender.com/webhooks/:path*"
+      "destination": "https://kora-2-tats.onrender.com/webhooks/:path*"
     },
     {
       "source": "/(.*)",

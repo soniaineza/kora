@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Clock } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
@@ -10,24 +10,28 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-type PlanKey = string;
-
 export function Verify() {
   const q = useQuery();
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const txRef = q.get('tx_ref') || q.get('paymentSession');
+  const orderRef = q.get('order') || q.get('tx_ref') || '';
   const apiBase = getApiBase();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [verifiedPackage, setVerifiedPackage] = useState<PlanKey | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [order, setOrder] = useState<{
+    status: string;
+    packageKey: string;
+    amountRwf?: number;
+    active: boolean;
+  } | null>(null);
 
   const handleContinue = useCallback(async () => {
-    if (verifiedPackage === 'BOOK') {
+    if (!order) return;
+
+    if (order.packageKey === 'BOOK') {
       navigate('/library');
       return;
     }
@@ -38,11 +42,11 @@ export function Verify() {
     try {
       const token = localStorage.getItem('kora-jwt');
       if (!token) {
-        setError(language === 'rw' ? 'Musanze wiyandikishe mbere.' : 'Please register/verify first.');
+        setError(language === 'rw' ? 'Musanze wiyandikishije mbere.' : 'Please register/verify first.');
         return;
       }
 
-      const planKey = verifiedPackage || 'STARTER';
+      const planKey = order.packageKey || 'STARTER';
       const res = await fetch(`${apiBase}/api/internal/start-exam`, {
         method: 'POST',
         headers: {
@@ -64,24 +68,26 @@ export function Verify() {
     } finally {
       setLoading(false);
     }
-  }, [apiBase, language, navigate, verifiedPackage]);
+  }, [apiBase, language, navigate, order]);
 
   useEffect(() => {
-    if (!txRef || isSuccess) return;
+    if (!orderRef || isSuccess) return;
 
     const checkStatus = async () => {
       try {
         const token = localStorage.getItem('kora-jwt');
         if (!token) return;
 
-        const res = await fetch(`${apiBase}/api/payments/flutterwave/verify/${encodeURIComponent(txRef)}`, {
+        const res = await fetch(`${apiBase}/api/payments/order/${encodeURIComponent(orderRef)}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        if (!res.ok) return;
 
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          if (data.active) {
-            setVerifiedPackage(data.package?.package_key || 'STARTER');
+        const data = await res.json().catch(() => ({}));
+        const o = data?.order;
+        if (o) {
+          setOrder(o);
+          if (o.active) {
             setIsSuccess(true);
           }
         }
@@ -90,13 +96,13 @@ export function Verify() {
       }
     };
 
-    const intervalId = window.setInterval(checkStatus, 3000);
+    const intervalId = window.setInterval(checkStatus, 5000);
     checkStatus();
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [txRef, apiBase, isSuccess]);
+  }, [orderRef, apiBase, isSuccess]);
 
   useEffect(() => {
     if (isSuccess && !loading) {
@@ -107,11 +113,13 @@ export function Verify() {
     }
   }, [handleContinue, isSuccess, loading]);
 
-  const title = language === 'rw' ? 'Kwishyura' : 'Payment Verification';
+  const title = language === 'rw' ? 'Agakururu kanyu' : language === 'fr' ? 'Ma commande' : 'Order Status';
   const subtitle =
     language === 'rw'
-      ? 'Tegereze akanya gato ko kwishyura kwanyu kwemezwa.'
-      : 'Please wait a moment while your payment is being verified.';
+      ? 'Tegereza umuyobozi wacu kwemeza kwishyura kwawe. Uzamenya igihe ufashwe kuri telefone yawe.'
+      : language === 'fr'
+        ? 'Votre forfait sera activé dès que l\'administrateur aura confirmé votre paiement.'
+        : 'Your package is activated once an administrator confirms your payment.';
 
   return (
     <>
@@ -121,19 +129,17 @@ export function Verify() {
           <div className="rounded-[2rem] border border-border bg-background p-8 text-center shadow-xl shadow-foreground/5">
             {isSuccess ? (
               <div className="animate-in fade-in zoom-in duration-500">
-                 <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <ShieldCheck size={40} />
                 </div>
                 <h2 className="text-2xl font-heading font-extrabold text-foreground mb-2">
-                  {language === 'rw' ? 'Kwishyura kwagenze neza!' : 'Payment Successful!'}
+                  {language === 'rw' ? 'Paketi yanyu yemejwe!' : 'Payment Confirmed!'}
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                  {verifiedPackage === 'BOOK'
+                  {order?.packageKey === 'BOOK'
                     ? (language === 'rw'
                       ? 'Igitabo cyawe kirashobora gusomwa noneho.'
-                      : language === 'fr'
-                        ? 'Votre livre est maintenant accessible.'
-                        : 'Your book is now accessible.')
+                      : 'Your book is now accessible.')
                     : (language === 'rw'
                       ? 'Noneho ushobora gutangira gukora ibizamini byawe.'
                       : 'Your package is now active. You can start your practice exams now.')}
@@ -143,8 +149,8 @@ export function Verify() {
                   disabled={loading}
                   className="w-full bg-primary text-primary-foreground rounded-full py-4 text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
-                  {loading ? '...' : (verifiedPackage === 'BOOK'
-                    ? (language === 'rw' ? 'Soma Igitabo' : language === 'fr' ? 'Lire le livre' : 'Read the Book')
+                  {loading ? '...' : (order?.packageKey === 'BOOK'
+                    ? (language === 'rw' ? 'Soma Igitabo' : 'Read the Book')
                     : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam'))}
                 </button>
               </div>
@@ -154,14 +160,36 @@ export function Verify() {
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                 </div>
                 <h2 className="text-xl font-heading font-bold text-foreground mb-4">
-                  {language === 'rw' ? 'Turacyategereje...' : 'Waiting for confirmation...'}
+                  {language === 'rw' ? 'Turacyategereje kwemeza...' : 'Waiting for confirmation...'}
                 </h2>
                 <p className="text-sm text-muted-foreground mb-8">
                   {language === 'rw'
-                    ? 'Emeza kwishyura kuri telefono yawe. Turahita tubona ko bishyuwe.'
-                    : 'Please complete the payment on Flutterwave. We will automatically detect when it is complete.'}
+                    ? 'Wishyuye? Umuyobozi azakwemeza. Iyi paji izakomeza kugenzura agakururu kawe.'
+                    : 'Make sure your payment is done. This page keeps checking your order until it is activated.'}
                 </p>
-                
+
+                {order && (
+                  <div className="mx-auto mb-6 max-w-xs rounded-2xl border border-border bg-muted/40 p-4 text-sm">
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                      <Clock size={16} />
+                      <span>
+                        {language === 'rw' ? 'Agakururu' : language === 'fr' ? 'Commande' : 'Order'}:{' '}
+                        <span className="font-mono text-foreground">{orderRef}</span>
+                      </span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      {language === 'rw' ? 'Ikigereranyo:' : language === 'fr' ? 'Statut :' : 'Status: '}{' '}
+                      <span className="capitalize font-semibold text-foreground">{order.status}</span>
+                    </div>
+                    {order.amountRwf ? (
+                      <div className="text-muted-foreground">
+                        {language === 'rw' ? 'Amafaranga:' : language === 'fr' ? 'Montant :' : 'Amount: '}{' '}
+                        <span className="font-semibold text-foreground">{order.amountRwf.toLocaleString()} RWF</span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
                 {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
 
                 <div className="flex flex-col gap-3">

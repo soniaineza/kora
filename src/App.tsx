@@ -18,6 +18,9 @@ import { Buy } from './pages/Buy';
 import { Verify } from './pages/Verify';
 import { AdminOverview } from './pages/AdminOverview';
 import { AdminSales } from './pages/AdminSales';
+import { AdminOrders } from './pages/AdminOrders';
+import { AdminExamSessions } from './pages/AdminExamSessions';
+import { AdminMostPopular } from './pages/AdminMostPopular';
 import { UserDashboard } from './pages/UserDashboard';
 
 export function App() {
@@ -44,6 +47,9 @@ export function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminOverview />} />
           <Route path="sales" element={<AdminSales />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="sessions" element={<AdminExamSessions />} />
+          <Route path="popular" element={<AdminMostPopular />} />
         </Route>
       </Routes>
     </AuthProvider>
