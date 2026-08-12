@@ -343,6 +343,7 @@ async function getOrderStatus(txRef) {
     amountRwf: tx.amount_rwf,
     phoneNumber: tx.phone_number,
     createdAt: tx.created_at,
+    failureReason: tx.failure_reason || null,
     active: pkg?.status === 'active',
     package: pkg || null,
   };

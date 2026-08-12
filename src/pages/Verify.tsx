@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Clock } from 'lucide-react';
+import { ShieldCheck, Clock, XCircle } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
@@ -21,10 +21,12 @@ export function Verify() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isFailed, setIsFailed] = useState(false);
   const [order, setOrder] = useState<{
     status: string;
     packageKey: string;
     amountRwf?: number;
+    failureReason?: string | null;
     active: boolean;
   } | null>(null);
 
@@ -71,7 +73,7 @@ export function Verify() {
   }, [apiBase, language, navigate, order]);
 
   useEffect(() => {
-    if (!orderRef || isSuccess) return;
+    if (!orderRef || isSuccess || isFailed) return;
 
     const checkStatus = async () => {
       try {
@@ -89,6 +91,8 @@ export function Verify() {
           setOrder(o);
           if (o.active) {
             setIsSuccess(true);
+          } else if (o.status === 'failed' || o.status === 'cancelled') {
+            setIsFailed(true);
           }
         }
       } catch {
@@ -102,7 +106,7 @@ export function Verify() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [orderRef, apiBase, isSuccess]);
+  }, [orderRef, apiBase, isSuccess, isFailed]);
 
   useEffect(() => {
     if (isSuccess && !loading) {
@@ -127,7 +131,40 @@ export function Verify() {
       <section className="bg-background py-16">
         <div className="max-w-xl mx-auto px-6">
           <div className="rounded-[2rem] border border-border bg-background p-8 text-center shadow-xl shadow-foreground/5">
-            {isSuccess ? (
+            {isFailed ? (
+              <div>
+                <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-red-600/10 text-red-600">
+                  <XCircle size={40} />
+                </div>
+                <h2 className="text-2xl font-heading font-extrabold text-foreground mb-2">
+                  {language === 'rw' ? 'Kwishyura byanze' : 'Payment failed'}
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  {language === 'rw'
+                    ? 'Ntabwo twashoboye kwemeza kwishyura. Ongera ugerageze, cyangwa ukoreshe izindi numero ya Mobile Money.'
+                    : 'We could not confirm your payment. Please try again, or use a different Mobile Money number.'}
+                </p>
+                {order?.failureReason && (
+                  <div className="mx-auto mb-6 max-w-xs rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+                    {language === 'rw' ? 'Impamvu' : 'Reason'}: <span className="font-semibold text-foreground">{order.failureReason}</span>
+                  </div>
+                )}
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => navigate(`/buy?package=${encodeURIComponent(order?.packageKey || 'STARTER')}`)}
+                    className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold"
+                  >
+                    {language === 'rw' ? 'Ongera ugerageze' : 'Try again'}
+                  </button>
+                  <button
+                    onClick={() => navigate('/packages')}
+                    className="text-xs text-muted-foreground hover:underline"
+                  >
+                    {language === 'rw' ? 'Genda inyuma' : 'Go back'}
+                  </button>
+                </div>
+              </div>
+            ) : isSuccess ? (
               <div className="animate-in fade-in zoom-in duration-500">
                 <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <ShieldCheck size={40} />
