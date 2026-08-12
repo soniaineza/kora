@@ -19,6 +19,7 @@ export function Login() {
   const [step, setStep] = useState<Step>('enter');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [devCode, setDevCode] = useState('');
 
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -37,6 +38,13 @@ export function Login() {
 
       const data = await apiRes.json();
       if (!apiRes.ok) throw new Error(data?.error || 'Failed to send OTP');
+
+      // When no SMS provider is configured the code comes back in the response
+      // so the user can see it on screen instead of receiving it by text.
+      if (data?.devCode) {
+        setDevCode(String(data.devCode));
+        setCode(String(data.devCode));
+      }
 
       setStep('verify');
     } catch (err: any) {
@@ -94,6 +102,12 @@ export function Login() {
 
         {error && (
           <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
+        )}
+
+        {devCode && (
+          <div className="mb-4 p-4 rounded-lg bg-primary/10 border border-primary/30 text-primary text-sm font-semibold text-center">
+            {t.auth.verificationCode}: {devCode}
+          </div>
         )}
 
         {step === 'enter' ? (

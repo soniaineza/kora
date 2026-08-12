@@ -49,8 +49,6 @@ export function Buy() {
         ? 'Choisissez votre forfait et passez commande. Votre accès est activé une fois le paiement confirmé.'
         : 'Choose your package and place an order. Your access is activated once payment is confirmed.';
   const packageLabel = language === 'rw' ? 'Paketi' : language === 'fr' ? 'Forfait' : 'Package';
-  const placeOrder =
-    language === 'rw' ? 'Fungura Agakururu' : language === 'fr' ? 'Passer commande' : 'Place Order';
   const payNow =
     language === 'rw'
       ? 'Kwishyura ubu (Mobile Money)'
@@ -63,12 +61,6 @@ export function Buy() {
     language === 'rw' ? 'Urugero: 0788123456' : language === 'fr' ? 'Ex: 0788123456' : 'e.g. 0788123456';
   const processing =
     language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...';
-  const howToPay =
-    language === 'rw'
-      ? 'Nyuma yo gusaba agakururu, wishyura amafaranga (MTN MoMo, Airtel Money, cyangwa byaboneka mu kigo). Paketi izaboneka nyuma yuko intrambyi imaze kwemeza.'
-      : language === 'fr'
-        ? "Après avoir passé commande, effectuez votre paiement (MTN MoMo, Airtel Money, ou en personne). Votre forfait sera activé une fois que l'administrateur aura confirmé."
-        : 'After placing the order, make your payment (MTN MoMo, Airtel Money, or in person). Your package is activated once an administrator confirms it.';
   const howToPayMoMo =
     language === 'rw'
       ? 'Andika numero ya telefone, ugukubite mwifuza kuri Mobile Money (MTN MoMo, Airtel Money cyangwa Tigo Cash). Paketi izafungurwa ako kanya nyuma yo kwemeza.'
@@ -111,6 +103,13 @@ export function Buy() {
     }
 
     if (!res.ok) {
+      // Token invalid/expired — clear it and send the user to re-login.
+      if (res.status === 401) {
+        localStorage.removeItem('kora-jwt');
+        const next = `/buy?package=${encodeURIComponent(packageKey)}`;
+        navigate(`/login?next=${encodeURIComponent(next)}`);
+        return null;
+      }
       throw new Error(data?.error || `Request failed (${res.status})`);
     }
 
@@ -134,49 +133,6 @@ export function Buy() {
     }
   }
 
-  async function handleStart() {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const token = localStorage.getItem('kora-jwt');
-
-      if (!token) {
-        const next = `/buy?package=${encodeURIComponent(packageKey)}`;
-        navigate(`/register?next=${encodeURIComponent(next)}`);
-        return;
-      }
-
-      const apiBase = getApiBase()?.trim();
-      if (!apiBase) throw new Error('API base URL not configured');
-
-      const res = await fetch(`${apiBase}/api/payments/initiate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ packageKey })
-      });
-
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error('Invalid server response');
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.error || `Request failed (${res.status})`);
-      }
-
-      setDone({ orderId: data.orderId || data.txRef });
-    } catch (e: any) {
-      setError(e?.message || 'Failed to place order');
-      setLoading(false);
-    }
-  }
-
   if (done) {
     return (
       <>
@@ -194,7 +150,7 @@ export function Buy() {
                 {language === 'rw' ? 'Umubare wa agakururu:' : language === 'fr' ? 'Référence de commande :' : 'Order reference:'}{' '}
                 <span className="font-mono text-foreground">{done.orderId}</span>
               </p>
-              <p className="text-sm text-muted-foreground mb-6">{howToPay}</p>
+              <p className="text-sm text-muted-foreground mb-6">{howToPayMoMo}</p>
               <button
                 onClick={() => navigate(`/verify?order=${encodeURIComponent(done.orderId)}`)}
                 className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold"
@@ -250,25 +206,6 @@ export function Buy() {
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
-
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />
-                <span>{language === 'rw' ? 'cyangwa' : language === 'fr' ? 'ou' : 'or'}</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-
-              <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-                {howToPay}
-              </div>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={handleStart}
-                className="w-full bg-muted text-foreground rounded-full py-3 text-sm font-semibold disabled:opacity-50"
-              >
-                {loading ? processing : placeOrder}
-              </button>
             </div>
           </div>
         </div>

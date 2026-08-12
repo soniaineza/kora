@@ -17,7 +17,7 @@
 | `AFRICASTALKING_API_KEY` | AT API key | no* | |
 | `AFRICASTALKING_SENDER_ID` | Registered alphanumeric sender ID or shortcode | no | Omitted in sandbox; required for some production routes |
 
-\* If omitted, `/api/auth/send-otp` and `/api/otp/send` return the OTP in the response body (`devCode`) instead of sending SMS. This allows full local testing without an AT account.
+\* If omitted (in any environment), `/api/otp/send` returns the OTP in the response body (`devCode`) instead of sending SMS — the login/register pages show it on screen. This allows login to work without an SMS provider. If SMS delivery fails in production, the code is exposed as a fallback as well.
 
 ## Optional / Tuning
 

@@ -20,6 +20,7 @@ const { config } = require('../config/env');
 const { isValidRwandaPhone, toLocalKey } = require('../utils/phone');
 const { hashOtp, otpMatches, generateOtp } = require('../utils/crypto');
 const otpModel = require('../models/otpModel');
+const africastalking = require('./africastalking');
 const smsService = require('./smsService');
 const userService = require('./userService');
 const authService = require('./authService');
@@ -55,12 +56,25 @@ async function sendOtp(phone) {
 
   await otpModel.create({ phone: normalized, otpHash, expiresAt });
 
+  // Deliver the code by SMS when Africa's Talking is configured; otherwise
+  // expose it in the response so login keeps working without an SMS provider.
   let sms = null;
+  let exposeCode = !config.isProduction;
   if (config.isProduction) {
-    sms = await smsService.sendOTP(normalized, code);
-    if (!sms.success) {
-      logger.error('OTP delivery failed', { phone: normalized, error: sms.error });
-      throw ApiError.badGateway('Failed to deliver the verification code. Please try again.');
+    if (africastalking.isConfigured()) {
+      sms = await smsService.sendOTP(normalized, code);
+      if (sms.success) {
+        exposeCode = false;
+      } else {
+        logger.warn('OTP SMS delivery failed, exposing code in response', {
+          phone: normalized,
+          error: sms.error,
+        });
+        exposeCode = true;
+      }
+    } else {
+      logger.warn('OTP SMS not configured, exposing code in response', { phone: normalized });
+      exposeCode = true;
     }
   }
 
@@ -69,7 +83,7 @@ async function sendOtp(phone) {
   return {
     phone: normalized,
     expiresAt,
-    ...(config.isProduction ? {} : { devCode: code }),
+    ...(exposeCode ? { devCode: code } : {}),
     ...(sms ? { sms } : {}),
   };
 }
