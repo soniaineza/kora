@@ -1,6 +1,9 @@
 export function getApiBase() {
   const envBase = import.meta.env?.VITE_API_BASE as string | undefined;
-  return (envBase || window.location.origin).replace(/\/$/, '');
+  // Strip a trailing /api so a misconfigured VITE_API_BASE (e.g. "/api" or
+  // "https://host.com/api") can never produce double "/api/api/..." URLs.
+  // Callers always append "/api/..." themselves.
+  return (envBase || window.location.origin).replace(/\/$/, '').replace(/\/api$/, '');
 }
 
 
