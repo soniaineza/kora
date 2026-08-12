@@ -1,122 +1,72 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Phone, Lock, User, Mail, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
-type Step = 'enter' | 'verify';
+
 function normalizePhone(raw: string) {
   return String(raw || '').replace(/\D/g, '');
 }
 
 export function Register() {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
+
   const [nextPath] = React.useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('next');
   });
-  const [step, setStep] = useState<Step>('enter');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [password6, setPassword6] = useState('');
-  const [code, setCode] = useState('');
-  const [devCode, setDevCode] = useState('');
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canNext = useMemo(() => {
-    const p = normalizePhone(phone);
-    return p.length >= 9 && password6.length === 6 && /^\d{6}$/.test(password6);
-  }, [phone, password6]);
+  const canSubmit =
+    fullName.trim().length >= 2 &&
+    normalizePhone(phone).length >= 9 &&
+    password.length >= 6;
 
-  const apiBase = getApiBase();
-
-  async function handleSendOtp(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSending(true);
+    setSubmitting(true);
     try {
-      if (!fullName.trim()) {
-        throw new Error(language === 'rw' ? 'Andika amazina yose.' : 'Full name is required.');
-      }
-
-      const p = normalizePhone(phone);
-      if (!p || p.length < 9) {
-        throw new Error(language === 'rw' ? 'Andika nimero ya telefone neza.' : 'Enter a valid phone number.');
-      }
-      if (!/^\d{6}$/.test(password6)) {
-        throw new Error(language === 'rw' ? 'Ijambo ry\u2019ibanga rigomba kuba imibare 6 gusa.' : 'Password must be exactly 6 digits.');
-      }
-
-      const res = await fetch(`${apiBase}/api/otp/send`, {
-
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p }),
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          phone: normalizePhone(phone),
+          email: email.trim() || undefined,
+          password,
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Registration failed');
 
-      if (!res.ok) throw new Error(data?.error || 'Failed to send OTP');
+      if (!data?.token) throw new Error('Registration failed');
 
-      // When no SMS provider is configured the code comes back in the response
-      // so the user can see it on screen instead of receiving it by text.
-      if (data?.devCode) {
-        setDevCode(String(data.devCode));
-        setCode(String(data.devCode));
-      }
+      localStorage.setItem('kora-jwt', data.token);
+      const seed = normalizePhone(phone);
+      const avatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
+      localStorage.setItem('kora-profile', JSON.stringify({ name: fullName.trim() || 'User', avatarUrl }));
 
-      setStep('verify');
+      setTimeout(() => {
+        navigate(nextPath || '/packages');
+      }, 350);
     } catch (err: any) {
       setError(err?.message || 'Registration failed');
     } finally {
-      setSending(false);
+      setSubmitting(false);
     }
   }
 
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setVerifying(true);
-    try {
-      const p = normalizePhone(phone);
-
-      const res = await fetch(`${apiBase}/api/otp/verify`, {
-
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: p, code }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) throw new Error(data?.error || 'Verification failed');
-
-      if (!data?.token) {
-        throw new Error('Verification failed');
-      }
-
-      localStorage.setItem('kora-jwt', data.token);
-
-      // Create/store placeholder profile so the user has an avatar after signup
-      const seed = `${p}`;
-      const avatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
-      localStorage.setItem('kora-profile', JSON.stringify({ name: fullName || 'User', avatarUrl }));
-
-      setTimeout(() => {
-        if (nextPath) {
-          navigate(nextPath);
-        } else {
-          navigate('/packages');
-        }
-      }, 350);
-    } catch (err: any) {
-      setError(err?.message || 'Verification failed');
-    } finally {
-      setVerifying(false);
-    }
-  }
+  const label = (rw: string, fr: string, en: string) =>
+    language === 'rw' ? rw : language === 'fr' ? fr : en;
 
   return (
     <section className="bg-muted min-h-[calc(100vh-4rem)] flex items-center justify-center py-16 px-6">
@@ -126,11 +76,15 @@ export function Register() {
             <span className="font-heading font-bold text-2xl text-primary">KORA</span>
             <span className="font-heading font-bold text-2xl text-foreground">.RW</span>
           </Link>
-          <h1 className="text-2xl font-heading font-extrabold text-foreground mb-2">{t.auth.registerTitle}</h1>
+          <h1 className="text-2xl font-heading font-extrabold text-foreground mb-2">
+            {label('Iyandikishe', 'Créer un compte', 'Create account')}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {step === 'enter'
-              ? t.auth.registerSubtitle
-              : t.auth.verificationHelper}
+            {label(
+              'Andika numero ya telefone n’ijambobanga. Nta code ikenewe.',
+              'Saisissez votre numéro et un mot de passe. Aucun code requis.',
+              'Enter your phone number and a password. No verification code needed.'
+            )}
           </p>
         </div>
 
@@ -138,116 +92,98 @@ export function Register() {
           <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
         )}
 
-        {devCode && (
-          <div className="mb-4 p-4 rounded-lg bg-primary/10 border border-primary/30 text-primary text-sm font-semibold text-center">
-            {t.auth.verificationCode}: {devCode}
-          </div>
-        )}
-
-        {step === 'enter' ? (
-          <form onSubmit={handleSendOtp} className="space-y-5">
-            <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.fullNameLabel}</label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-2">
+              {label('Amazina', 'Nom complet', 'Full name')}
+            </label>
+            <div className="relative">
+              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                placeholder={t.auth.fullNamePlaceholder}
+                className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder={label('Urugero: Jean Pierre', 'Ex: Jean Pierre', 'e.g. Jean Pierre')}
               />
             </div>
+          </div>
 
-            <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.phoneLabel}</label>
-              <div className="relative">
-                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  required
-                  inputMode="numeric"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder={t.auth.phonePlaceholder}
-                />
-              </div>
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-2">
+              {label('Numero ya telefone', 'Numéro de téléphone', 'Phone number')}
+            </label>
+            <div className="relative">
+              <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                required
+                inputMode="numeric"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder={label('Urugero: 0788123456', 'Ex: 0788123456', 'e.g. 0788123456')}
+              />
             </div>
+          </div>
 
-            <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.password} (6 {language === 'rw' ? 'imibare' : language === 'fr' ? 'chiffres' : 'digits'})</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  required
-                  inputMode="numeric"
-                  value={password6}
-                  onChange={(e) => setPassword6(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder={t.auth.verificationPlaceholder}
-                />
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">{t.auth.passwordHelper}</p>
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-2">
+              {label('Imeyili (bishoboka)', 'Email (optionnel)', 'Email (optional)')}
+            </label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="you@example.com"
+              />
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={sending || !canNext}
-              className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-            >
-              {sending ? t.auth.creating : (
-                <>
-                  {t.auth.createAccount} <ArrowRight size={14} />
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerify} className="space-y-5">
-            <div>
-              <label className="text-xs font-semibold text-foreground block mb-2">{t.auth.verificationCode}</label>
-              <div className="relative">
-                <ShieldCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  required
-                  inputMode="numeric"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder={t.auth.verificationPlaceholder}
-                />
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">{t.auth.verificationHelper}</p>
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-2">
+              {label('Ijambobanga', 'Mot de passe', 'Password')}
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                required
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-muted border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="••••••••"
+              />
             </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {label('Byibuze inyuguti 6', 'Au moins 6 caractères', 'At least 6 characters')}
+            </p>
+          </div>
 
-            <button
-              type="submit"
-              disabled={verifying || code.length !== 6}
-              className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-            >
-              {verifying ? t.auth.verifying : (
-                <>
-                  {t.auth.verifyAndContinue} <ArrowRight size={14} />
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStep('enter')}
-              className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              {t.auth.backToRegistration}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={submitting || !canSubmit}
+            className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          >
+            {submitting ? label('Bikorwa...', 'Traitement...', 'Creating...') : (
+              <>
+                {label('Fungura konti', 'Créer le compte', 'Create account')} <ArrowRight size={14} />
+              </>
+            )}
+          </button>
+        </form>
 
         <div className="mt-6 pt-6 border-t border-border text-center text-sm">
-          <span className="text-muted-foreground">{t.auth.alreadyHaveAccount} </span>
+          <span className="text-muted-foreground">
+            {label('Ufite konti?', 'Déjà un compte ?', 'Already have an account?')}{' '}
+          </span>
           <Link to="/login" className="text-primary font-semibold hover:underline">
-            {t.auth.loginLink}
+            {label('Injira', 'Connectez-vous', 'Log in')}
           </Link>
         </div>
       </div>
     </section>
   );
 }
-

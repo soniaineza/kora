@@ -43,6 +43,24 @@ function stringField(value, name, { min = 1, max = 500 } = {}) {
   return text;
 }
 
+function password(value) {
+  required(value, 'password');
+  const text = String(value);
+  if (text.length < 6 || text.length > 72) {
+    throw ApiError.badRequest('password must be between 6 and 72 characters');
+  }
+  return text;
+}
+
+function emailOptional(value, name = 'email') {
+  if (value === undefined || value === null || String(value).trim() === '') return undefined;
+  const text = String(value).trim().toLowerCase();
+  if (text.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+    throw ApiError.badRequest(`${name} must be a valid email address`);
+  }
+  return text;
+}
+
 function stringOptional(value, name, { max = 500 } = {}) {
   if (value === undefined || value === null) return undefined;
   const text = String(value).trim();
@@ -76,6 +94,8 @@ module.exports = {
   required,
   phone,
   otp,
+  password,
+  emailOptional,
   stringField,
   stringOptional,
   enumOf,

@@ -37,4 +37,29 @@ router.post(
   authController.verifyOtp
 );
 
+// Password auth (no OTP required)
+router.post(
+  '/register',
+  validate({
+    body: {
+      phone: v.phone,
+      password: v.password,
+      fullName: v.stringField,
+      email: v.emailOptional,
+    },
+  }),
+  authController.register
+);
+
+router.post(
+  '/login',
+  validate({
+    body: {
+      identifier: v.stringField,
+      password: v.stringField,
+    },
+  }),
+  authController.login
+);
+
 module.exports = router;

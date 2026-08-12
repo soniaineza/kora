@@ -10,7 +10,42 @@
  */
 
 const crypto = require('crypto');
+const { promisify } = require('util');
 const { config } = require('../config/env');
+
+const scryptAsync = promisify(crypto.scrypt);
+
+/**
+ * Hash a password with a random salt using scrypt (Node built-in, no deps).
+ * Stored format: `salt:derivedKey` (hex).
+ * @param {string} password
+ * @returns {Promise<string>}
+ */
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derived = await scryptAsync(String(password), salt, 64);
+  return `${salt}:${derived.toString('hex')}`;
+}
+
+/**
+ * Verify a password against a stored `salt:derivedKey` hash.
+ * @param {string} password
+ * @param {string} stored
+ * @returns {Promise<boolean>}
+ */
+async function verifyPassword(password, stored) {
+  if (!stored || typeof stored !== 'string') return false;
+  const [salt, key] = stored.split(':');
+  if (!salt || !key) return false;
+  try {
+    const derived = await scryptAsync(String(password), salt, 64);
+    const a = Buffer.from(key, 'hex');
+    const b = derived;
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch (_err) {
+    return false;
+  }
+}
 
 function hashOtp(code, secret = config.otp.secret) {
   return crypto.createHmac('sha256', secret).update(String(code)).digest('hex');
@@ -28,4 +63,4 @@ function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-module.exports = { hashOtp, otpMatches, generateOtp };
+module.exports = { hashOtp, otpMatches, generateOtp, hashPassword, verifyPassword };
