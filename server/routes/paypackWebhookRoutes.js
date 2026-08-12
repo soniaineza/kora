@@ -42,7 +42,7 @@ router.post(
       payload = req.body || {};
     }
 
-    if (signature && !paypackService.verifyWebhookSignature(rawBody, signature)) {
+    if (!signature || !paypackService.verifyWebhookSignature(rawBody, signature)) {
       throw ApiError.unauthorized('Invalid webhook signature');
     }
     logger.info('Paypack webhook received', { kind: payload.kind, eventId: payload.event_id });

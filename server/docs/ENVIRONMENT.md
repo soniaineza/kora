@@ -41,8 +41,31 @@ recorded as `pending`. An admin then activates the order from the Admin panel
 (`/admin/orders` → `POST /api/admin/payments/activate`) after receiving payment
 outside the platform (MTN/Airtel Mobile Money, bank transfer, etc.).
 
-No payment-provider keys are required. Only `PAYMENT_MODE` (`demo` or
-`production`) is used for reporting.
+No payment-provider keys are required for the manual flow. Only `PAYMENT_MODE`
+(`demo` or `production`) is used for reporting.
+
+## Paypack (Automatic Mobile Money)
+
+Optional — enables automatic package activation via **MTN MoMo, Airtel Money and
+Tigo Cash**. The user receives a payment prompt on their phone and the package
+activates via webhook, no admin needed. When unset, the manual flow above is
+used.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PAYPACK_CLIENT_ID` | Paypack agent client ID (from the Paypack dashboard) | — |
+| `PAYPACK_CLIENT_SECRET` | Paypack agent client secret | — |
+| `PAYPACK_BASE_URL` | Paypack API base URL | `https://payments.paypack.rw/api` |
+| `PAYPACK_WEBHOOK_SECRET` | Secret used to verify `x-paypack-signature` webhooks | — |
+| `PAYPACK_WEBHOOK_MODE` | `production` or `sandbox` webhook delivery | `production` |
+
+Webhook URL to register in the Paypack dashboard:
+`https://<your-backend>/webhooks/paypack`
+
+The Paypack integration is enabled when both `PAYPACK_CLIENT_ID` and
+`PAYPACK_CLIENT_SECRET` are set. Requests to `/api/payments/paypack/start`
+return `502 Paypack payment request failed` when the credentials are invalid
+(e.g. `agent not found`).
 
 ## Example `.env` (Development)
 

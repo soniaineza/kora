@@ -53,10 +53,10 @@ export function Buy() {
     language === 'rw' ? 'Fungura Agakururu' : language === 'fr' ? 'Passer commande' : 'Place Order';
   const payNow =
     language === 'rw'
-      ? 'Kwishyura ubu (MoMo)'
+      ? 'Kwishyura ubu (Mobile Money)'
       : language === 'fr'
-        ? 'Payer maintenant (MoMo)'
-        : 'Pay now (MoMo)';
+        ? 'Payer maintenant (Mobile Money)'
+        : 'Pay now (Mobile Money)';
   const phoneLabel =
     language === 'rw' ? 'Numero ya telefone' : language === 'fr' ? 'Numéro de téléphone' : 'Phone number';
   const phonePlaceholder =
@@ -71,10 +71,10 @@ export function Buy() {
         : 'After placing the order, make your payment (MTN MoMo, Airtel Money, or in person). Your package is activated once an administrator confirms it.';
   const howToPayMoMo =
     language === 'rw'
-      ? 'Andika numero ya telefone, ugukubite mwifuza kuri MoMo. Paketi izafungurwa ako kanya nyuma yo kwemeza.'
+      ? 'Andika numero ya telefone, ugukubite mwifuza kuri Mobile Money (MTN MoMo, Airtel Money cyangwa Tigo Cash). Paketi izafungurwa ako kanya nyuma yo kwemeza.'
       : language === 'fr'
-        ? 'Saisissez votre numéro, puis approuvez la demande sur votre téléphone. Le forfait est activé automatiquement après confirmation.'
-        : 'Enter your phone number, then approve the request on your phone. Your package activates automatically once confirmed.';
+        ? 'Saisissez votre numéro, puis approuvez la demande sur votre téléphone (MTN MoMo, Airtel Money ou Tigo Cash). Le forfait est activé automatiquement après confirmation.'
+        : 'Enter your phone number, then approve the request on your phone (MTN MoMo, Airtel Money or Tigo Cash). Your package activates automatically once confirmed.';
   const viewStatus =
     language === 'rw'
       ? 'Reba agakururu kanyu'
@@ -123,7 +123,10 @@ export function Buy() {
 
     try {
       const data = await postOrder({ packageKey, phone: phone.trim() });
-      if (!data) return;
+      if (!data) {
+        setLoading(false);
+        return;
+      }
       setDone({ orderId: data.orderId || data.txRef });
     } catch (e: any) {
       setError(e?.message || 'Failed to start payment');
