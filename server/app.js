@@ -48,6 +48,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://kora-nine-phi.vercel.app',
+  'https://koraapp.net',
   ...config.corsOrigins.split(',').map((origin) => origin.trim()).filter(Boolean),
 ];
 
