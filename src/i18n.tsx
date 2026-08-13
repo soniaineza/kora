@@ -175,6 +175,7 @@ const translations = {
       loading: 'Loading...',
       startTimer: 'Start Timer',
       startLearning: 'Start Learning',
+      timeLeftLabel: 'Time left',
       questions: [
         {
           prompt: 'What is the maximum speed limit in a built-up residential area?',
@@ -944,6 +945,7 @@ const translations = {
       loading: 'Chargement...',
       startTimer: 'Démarrer le chronomètre',
       startLearning: 'Commencer à apprendre',
+      timeLeftLabel: 'Temps restant',
       questions: [
         {
           prompt: 'Quelle est la vitesse maximale dans une zone résidentielle?',

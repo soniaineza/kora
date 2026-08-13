@@ -17,8 +17,7 @@ const PLAN_MAP = {
   MASTER: { days: 10, exams: 20, amountRwf: 2000, unlimited: false },
   PREMIUM: { days: 15, exams: 25, amountRwf: 3000, unlimited: false },
   PRO: { days: 30, exams: 50, amountRwf: 5000, unlimited: false },
-  UNLIMITED: { days: null, exams: null, amountRwf: 7000, unlimited: true },
-  BOOK: { days: 365, exams: null, amountRwf: 1000, unlimited: true },
+  UNLIMITED: { days: 45, exams: 100, amountRwf: 7000, unlimited: false },
 };
 
 function getPlan(packageKey) {

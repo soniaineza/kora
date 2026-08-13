@@ -25,8 +25,7 @@ export function Exams() {
     MASTER: { price: '2,000 RWF', exams: 20 },
     PREMIUM: { price: '3,000 RWF', exams: 25 },
     PRO: { price: '5,000 RWF', exams: 50 },
-    UNLIMITED: { price: '7,000 RWF', exams: 999999 },
-    BOOK: { price: '1,000 RWF', exams: 999999 },
+    UNLIMITED: { price: '7,000 RWF', exams: 100 },
   };
 
   const p = planMap[plan] || planMap.STARTER;
@@ -226,13 +225,13 @@ export function Exams() {
                   </h2>
 
                   <p className="mt-3 text-muted-foreground max-w-xl">
-                    {t.exams.examSubtitle.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}
+                    {t.exams.examSubtitle.replace('{count}', p.exams.toString())}
                   </p>
 
                   {guard.remaining != null && (
                     <div className="mt-5 flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center rounded-full bg-muted/70 px-3 py-1 text-xs font-semibold text-foreground">
-                        {guard.remaining === 999999 ? t.exams.unlimited : `${t.exams.remainingAttempts} ${guard.remaining}`}
+                        {`${t.exams.remainingAttempts} ${guard.remaining}`}
                       </span>
                       <span className="inline-flex items-center rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
                         {t.exams.passMark}
@@ -280,7 +279,7 @@ export function Exams() {
 
   return (
     <>
-      <PageHeader title={`${t.exams.examTitle} — ${plan}`} subtitle={`${t.exams.packageSummary.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}`} />
+      <PageHeader title={`${t.exams.examTitle} — ${plan}`} subtitle={`${t.exams.packageSummary.replace('{count}', p.exams.toString())}`} />
       {!start ? (
         <section className="bg-background py-16">
           <div className="max-w-4xl mx-auto px-6">
@@ -289,7 +288,7 @@ export function Exams() {
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary/80">{t.exams.selectedPackage}</p>
                 <h2 className="mt-3 text-3xl font-heading font-extrabold text-foreground">{plan} {t.exams.package?.toLowerCase?.() || 'plan'}</h2>
                 <p className="mt-3 text-muted-foreground max-w-2xl">
-                  {t.exams.packageSummary.replace('{count}', p.exams === 999999 ? t.exams.unlimited : p.exams.toString())}
+                  {t.exams.packageSummary.replace('{count}', p.exams.toString())}
                 </p>
               </div>
 

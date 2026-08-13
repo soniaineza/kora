@@ -39,5 +39,6 @@ router.post('/cancel', adminPaymentController.cancelOrder);
 router.get('/package-sales', adminPaymentController.getPackageSales);
 router.get('/exam-session-counts', adminPaymentController.getExamSessionCounts);
 router.get('/most-popular', adminPaymentController.getMostPopular);
+router.get('/packages/active-count', adminPaymentController.getActivePackagesCount);
 
 module.exports = router;

@@ -199,10 +199,24 @@ app.get(
   '/api/internal/active-package',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const plan = packageService.getPlan(req.query.plan);
     const phone = req.auth?.phone;
-    if (!plan) throw ApiError.badRequest('plan is required');
     if (!phone) throw ApiError.unauthorized('Missing phone in token');
+
+    if (req.query.plan === 'ALL') {
+      const { getSupabaseAdmin } = require('./database/supabase');
+      const { data, error } = await getSupabaseAdmin()
+        .from('user_packages')
+        .select('*')
+        .eq('phone', phone)
+        .eq('status', 'active')
+        .or(`expires_at.gt.${new Date().toISOString()},expires_at.is.null`)
+        .order('activated_at', { ascending: false });
+      if (error) throw error;
+      return res.json({ ok: true, packages: data || [] });
+    }
+
+    const plan = packageService.getPlan(req.query.plan);
+    if (!plan) throw ApiError.badRequest('plan is required');
 
     const pkg = await packageService.findActivePackage(phone, plan.key);
     if (!pkg) {
@@ -215,6 +229,26 @@ app.get(
       remaining_attempts: pkg.unlimited ? 999999 : pkg.remaining_attempts ?? 0,
       expires_at: pkg.expires_at,
     });
+  })
+);
+
+app.get(
+  '/api/internal/exam-history',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const phone = req.auth?.phone;
+    if (!phone) throw ApiError.unauthorized('Missing phone in token');
+
+    const { getSupabaseAdmin } = require('./database/supabase');
+    const { data, error } = await getSupabaseAdmin()
+      .from('exam_sessions')
+      .select('*')
+      .eq('phone', phone)
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    return res.json({ ok: true, sessions: data || [] });
   })
 );
 
@@ -348,8 +382,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const phone = req.auth?.phone;
     if (!phone) throw ApiError.unauthorized('Missing phone in token');
-    const pkg = await packageService.findActivePackage(phone, 'BOOK');
-    return res.json({ ok: true, hasAccess: !!pkg, package: pkg });
+    return res.json({ ok: true, hasAccess: true });
   })
 );
 
@@ -359,10 +392,6 @@ app.get(
   asyncHandler(async (req, res) => {
     const phone = req.auth?.phone;
     if (!phone) throw ApiError.unauthorized('Missing phone in token');
-    const pkg = await packageService.findActivePackage(phone, 'BOOK');
-    if (!pkg) {
-      throw ApiError.forbidden('No active book package. Please purchase the book.');
-    }
     const pdfPath = path.join(BOOKS_DIR, 'IGAZETI-1.pdf');
     if (!fs.existsSync(pdfPath)) {
       throw ApiError.notFound('Book file not found');

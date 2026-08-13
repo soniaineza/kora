@@ -25,16 +25,18 @@ export function AdminOverview() {
 
         const apiBase = getApiBase();
         
-        const [salesRes, sessionsRes, popularRes] = await Promise.all([
+        const [salesRes, sessionsRes, popularRes, activeRes] = await Promise.all([
           fetch(`${apiBase}/api/admin/package-sales`, { headers: { Authorization: `Bearer ${token}`, 'x-admin-demo': '1' } }),
           fetch(`${apiBase}/api/admin/exam-session-counts`, { headers: { Authorization: `Bearer ${token}`, 'x-admin-demo': '1' } }),
           fetch(`${apiBase}/api/admin/most-popular`, { headers: { Authorization: `Bearer ${token}`, 'x-admin-demo': '1' } }),
+          fetch(`${apiBase}/api/admin/packages/active-count`, { headers: { Authorization: `Bearer ${token}`, 'x-admin-demo': '1' } }),
         ]);
 
-        const [salesData, sessionsData, popularData] = await Promise.all([
+        const [salesData, sessionsData, , activeData] = await Promise.all([
           salesRes.json(),
           sessionsRes.json(),
           popularRes.json(),
+          activeRes?.json().catch(() => ({ ok: true, activePackages: 0 })),
         ]);
 
         const byPackage: Record<string, { count: number; revenue: number }> = {};
@@ -56,7 +58,7 @@ export function AdminOverview() {
           });
         }
 
-        setStats({ totalSales, totalRevenue, activePackages: 0, totalSessions, byPackage });
+        setStats({ totalSales, totalRevenue, activePackages: Number(activeData?.activePackages ?? 0), totalSessions, byPackage });
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -111,6 +113,17 @@ export function AdminOverview() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-heading font-bold text-foreground">{stats.totalSessions}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {language === 'rw' ? 'Pakete ibikora' : language === 'fr' ? 'Forfaits actifs' : 'Active Packages'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-heading font-bold text-foreground">{stats.activePackages}</div>
           </CardContent>
         </Card>
       </div>

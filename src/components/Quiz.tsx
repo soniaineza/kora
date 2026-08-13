@@ -3,17 +3,12 @@ import { ArrowRight, Check, RotateCcw, Trophy, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
+import { getQuestionBank, sampleQuestions } from '../lib/questionBank';
+import type { Question } from '../lib/questionBank';
 
 const SpeedSign60 = () => (
   <svg viewBox="0 0 100 100" className="w-20 h-20" aria-hidden="true">
-    <circle
-      cx="50"
-      cy="50"
-      r="44"
-      fill="white"
-      stroke="#DC2626"
-      strokeWidth="9"
-    />
+    <circle cx="50" cy="50" r="44" fill="white" stroke="#DC2626" strokeWidth="9" />
     <text
       x="50"
       y="66"
@@ -62,38 +57,26 @@ export function Quiz({
   sessionId?: string;
   plan?: string;
 }) {
-  // Always run sample/free trial with exactly 20 questions.
-  // For paid exams, we still default to 20 unless overridden by props.
   const TOTAL_QUESTIONS = totalQuestions ?? 20;
   const { t, language } = useLanguage();
   const DEFAULT_EXAM_DURATION_SECONDS = 20 * 60;
 
   const [examDurationSeconds, setExamDurationSeconds] = useState<number>(DEFAULT_EXAM_DURATION_SECONDS);
 
-
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const [score, setScore] = useState(0);
+  const [answers, setAnswers] = useState<(number | null)[]>(() => Array(TOTAL_QUESTIONS).fill(null));
   const [finished, setFinished] = useState(false);
 
   const [sampleTaken, setSampleTaken] = useState(false);
   const [freeStatusLoading, setFreeStatusLoading] = useState(false);
 
-  // Free-trial UX requirements:
-  // - Timer must not start automatically.
-  // - Timer starts at 20 minutes (20 * 60 seconds).
-  // - User clicks Start Timer once to begin.
   const [timerArmed, setTimerArmed] = useState(false);
-
-
 
   const storageKey = sessionId ? `kora-exam-timer-${sessionId}` : 'kora-sample-timer';
   const [startAtMs, setStartAtMs] = useState<number | null>(null);
 
-
-  // Avoid runtime crash: ensure storageKey exists before any use.
-  // (Previously, storageKey was referenced before initialization.)
   const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   useEffect(() => {
@@ -130,76 +113,36 @@ export function Quiz({
     };
   }, [sessionId]);
 
-  const base = t.quiz.questions;
-
-  // Deterministic seeded RNG so each attempt/session has different (but stable) questions.
-  // - Paid attempts: seed by sessionId
-  // - Sample/free trial: seed by a stable timestamp stored in session storage
+  // Deterministic seed so each attempt/session gets a different (but stable) set.
   const seedSource = sessionId || (startAtMs ? String(startAtMs) : 'sample');
 
-  // Return a shuffled order deterministically from seedSource.
-  const shuffledOrder = useMemo(() => {
-    // xmur3 hash
-    const str = String(seedSource);
-    let h = 1779033703 ^ str.length;
-    for (let i = 0; i < str.length; i++) {
-      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
-      h = (h << 13) | (h >>> 19);
-    }
-    // mulberry32 seeded PRNG
-    const mulberry32 = (a0: number) => {
-      let a = a0;
-      return () => {
-        a |= 0;
-        a = (a + 0x6d2b79f5) | 0;
-        let t = Math.imul(a ^ (a >>> 15), 1 | a);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    };
+  const questions = useMemo<Question[]>(
+    () => sampleQuestions(language, TOTAL_QUESTIONS, seedSource),
+    [language, TOTAL_QUESTIONS, seedSource]
+  );
 
-    // finalize seed
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    h ^= h >>> 16;
-    const rand = mulberry32(h >>> 0);
-
-    const order = Array.from({ length: TOTAL_QUESTIONS }, (_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-    return order;
-  }, [seedSource, TOTAL_QUESTIONS]);
-
-  const visuals = useMemo(() => {
-    const pool = [<SpeedSign60 />, undefined, <TriangleWarning />, undefined, undefined];
-    // shuffled visuals but without repeats by index within the attempt order
-    return pool;
-  }, []);
-
-  const questions = useMemo(() => {
-    // Use the seeded shuffled order (no repeats) for this attempt.
-    const correctPool = [0, 1, 2, 3];
-
-    return shuffledOrder.map((idx) => {
-      const correct = correctPool[idx % correctPool.length];
-      const visual = visuals[idx % visuals.length];
-      return { correct, visual };
-    });
-  }, [shuffledOrder, visuals]);
-
+  // Bank order keeps the decorative sign SVGs attached to the two sign questions.
+  const qVisual = (q: Question) => {
+    const bank = getQuestionBank(language);
+    const i = bank.indexOf(q);
+    if (i === 0) return <SpeedSign60 />;
+    if (i === 2) return <TriangleWarning />;
+    return undefined;
+  };
 
   const q = questions[current];
-  const qIdx = shuffledOrder[current % shuffledOrder.length];
-  const qText = base[qIdx % base.length];
+
+  const score = useMemo(
+    () => questions.reduce((s, question, i) => (answers[i] !== null && answers[i] === question.correct ? s + 1 : s), 0),
+    [questions, answers]
+  );
+
   useEffect(() => {
     let cancelled = false;
 
     // Ensure timer is not started automatically for fresh attempt.
     setTimerArmed(false);
     setStartAtMs(null);
-
 
     (async () => {
       try {
@@ -266,7 +209,6 @@ export function Quiz({
     if (!startAtMs) return;
     if (!timerArmed) return;
 
-
     let mounted = true;
 
     const compute = () => {
@@ -289,61 +231,60 @@ export function Quiz({
     };
   }, [startAtMs, examDurationSeconds, isSample, timerArmed]);
 
-  const submitExamOnce = React.useCallback(async () => {
-    if (hasAutoSubmitted) return;
+  const computeScore = () =>
+    questions.reduce((s, question, i) => (answers[i] !== null && answers[i] === question.correct ? s + 1 : s), 0);
 
-    setHasAutoSubmitted(true);
+  const submitExamOnce = React.useCallback(
+    async (finalScore: number) => {
+      if (hasAutoSubmitted) return;
 
-    try {
-      const apiBase = getApiBase();
-      const token = localStorage.getItem('kora-jwt');
+      setHasAutoSubmitted(true);
 
-      if (sessionId) {
-        // Paid exam
-        await fetch(`${apiBase}/api/internal/submit-exam`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            sessionId,
-            score,
-            totalQuestions: questions.length,
-          }),
-        });
-        return;
-      }
-
-      if (isSample) {
-        // Free sample
-        if (!token) return;
-        await fetch(`${apiBase}/api/internal/free-exam/complete`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ score, totalQuestions: questions.length }),
-        });
-      }
-    } catch (e) {
-      console.error('Auto submit failed', e);
-    } finally {
       try {
-        if (storageKey) localStorage.removeItem(storageKey);
-      } catch {
-        // Ignore storage cleanup failures.
+        const apiBase = getApiBase();
+        const token = localStorage.getItem('kora-jwt');
+
+        if (sessionId) {
+          // Paid exam
+          await fetch(`${apiBase}/api/internal/submit-exam`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              sessionId,
+              score: finalScore,
+              totalQuestions: questions.length,
+            }),
+          });
+          return;
+        }
+
+        if (isSample) {
+          // Free sample
+          if (!token) return;
+          await fetch(`${apiBase}/api/internal/free-exam/complete`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ score: finalScore, totalQuestions: questions.length }),
+          });
+        }
+      } catch (e) {
+        console.error('Auto submit failed', e);
+      } finally {
+        try {
+          if (storageKey) localStorage.removeItem(storageKey);
+        } catch {
+          // Ignore storage cleanup failures.
+        }
       }
-    }
-  }, [
-    hasAutoSubmitted,
-    sessionId,
-    isSample,
-    score,
-    questions.length,
-    storageKey,
-  ]);
+    },
+    [hasAutoSubmitted, sessionId, isSample, questions.length, storageKey]
+  );
 
   // When time hits 0: finish + submit
   useEffect(() => {
@@ -353,8 +294,10 @@ export function Quiz({
 
     setFinished(true);
     setRevealed(true);
-    submitExamOnce();
+    submitExamOnce(computeScore());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeftMs, finished, submitExamOnce]);
+
   const formattedTime = useMemo(() => {
     const ms = timeLeftMs ?? examDurationSeconds * 1000;
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -451,15 +394,16 @@ export function Quiz({
     if (percentage === 100) message = String(t.quiz.perfect);
     else if (percentage >= 80) message = String(t.quiz.excellent);
     else if (percentage >= 60) message = String(t.quiz.onTrack);
+    const passed = score >= Math.ceil(questions.length / 2);
     return (
       <section id="quiz" className="bg-background py-20">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-6">
           <div className="rounded-[2rem] border border-border bg-background p-10 text-center shadow-xl shadow-foreground/5">
             <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Trophy size={40} />
             </div>
             <h2 className="text-3xl font-heading font-extrabold text-foreground mb-2">
-              {percentage >= 60 ? t.quiz.excellent : t.quiz.good}
+              {passed ? (percentage >= 80 ? t.quiz.excellent : t.quiz.good) : t.quiz.good}
             </h2>
             <p className="text-muted-foreground mb-8">{message}</p>
             <div className="grid grid-cols-2 gap-4 mb-10">
@@ -475,21 +419,23 @@ export function Quiz({
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                onClick={() => {
-                  setCurrent(0);
-                  setSelected(null);
-                  setRevealed(false);
-                  setScore(0);
-                  setFinished(false);
-                  setHasAutoSubmitted(false);
-                  setStartAtMs(Date.now());
-                }}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-8 py-3 font-semibold text-foreground transition-all hover:bg-muted"
-              >
-                <RotateCcw size={18} />
-                {t.quiz.tryAgain}
-              </button>
+              {isSample && (
+                <button
+                  onClick={() => {
+                    setCurrent(0);
+                    setSelected(null);
+                    setRevealed(false);
+                    setAnswers(Array(TOTAL_QUESTIONS).fill(null));
+                    setFinished(false);
+                    setHasAutoSubmitted(false);
+                    setStartAtMs(Date.now());
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-border px-8 py-3 font-semibold text-foreground transition-all hover:bg-muted"
+                >
+                  <RotateCcw size={18} />
+                  {t.quiz.tryAgain}
+                </button>
+              )}
               {isSample ? (
                 <a
                   href="/packages"
@@ -498,14 +444,116 @@ export function Quiz({
                   {t.quiz.fullAccess}
                 </a>
               ) : (
-                <a
-                  href={`/buy?package=${encodeURIComponent(plan || '')}&network=mtn`}
-                  className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
-                >
-                  {t.quiz.fullAccess}
-                </a>
+                <>
+                  <a
+                    href={`/exams?plan=${encodeURIComponent(plan || '')}&start=0`}
+                    className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
+                  >
+                    {language === 'rw' ? 'Kora Ikindi Kizamini' : language === 'fr' ? 'Passer un autre examen' : 'Take Another Exam'}
+                  </a>
+                  <a
+                    href="/packages"
+                    className="inline-flex items-center gap-2 rounded-full border border-border px-8 py-3 font-semibold text-foreground transition-all hover:bg-muted"
+                  >
+                    {language === 'rw' ? 'Paketi' : language === 'fr' ? 'Forfaits' : 'Back to Packages'}
+                  </a>
+                </>
               )}
             </div>
+
+            {/* Answer review */}
+            {questions.length > 0 && (
+              <div className="mt-12 text-left">
+                <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                  {language === 'rw'
+                    ? 'Igisubizo cyawe kuri buri kibazo'
+                    : language === 'fr'
+                      ? 'Vos réponses détaillées'
+                      : 'Review your answers'}
+                </div>
+                <div className="space-y-4">
+                  {questions.map((question, i) => {
+                    const userAns = answers[i];
+                    const ok = userAns === question.correct;
+                    return (
+                      <div key={i} className="rounded-3xl border border-border bg-background p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <p className="text-sm font-semibold text-foreground leading-6">
+                            {i + 1}. {question.prompt}
+                          </p>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                              userAns === null
+                                ? 'bg-muted text-muted-foreground'
+                                : ok
+                                  ? 'bg-green-500/10 text-green-600'
+                                  : 'bg-red-500/10 text-red-600'
+                            }`}
+                          >
+                            {userAns === null
+                              ? language === 'rw'
+                                ? 'Nta gisubizo'
+                                : language === 'fr'
+                                  ? 'Sans réponse'
+                                  : 'No answer'
+                              : ok
+                                ? t.quiz.correct
+                                : t.quiz.notQuite}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                          {question.category}
+                        </p>
+                        <div className="mt-3 space-y-1.5">
+                          {question.options.map((opt, oi) => {
+                            const isRight = oi === question.correct;
+                            const isUserWrong = oi === userAns && !ok;
+                            let classes = 'border border-border bg-muted/30';
+                            if (isRight) classes = 'border-2 border-green-500 bg-green-500/5';
+                            else if (isUserWrong) classes = 'border-2 border-red-500 bg-red-500/5';
+                            return (
+                              <div
+                                key={oi}
+                                className={`flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm ${classes}`}
+                              >
+                                <span className="flex items-center gap-3">
+                                  <span
+                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                                      isRight
+                                        ? 'bg-green-600 text-white'
+                                        : isUserWrong
+                                          ? 'bg-red-600 text-white'
+                                          : 'bg-muted text-muted-foreground'
+                                    }`}
+                                  >
+                                    {String.fromCharCode(65 + oi)}
+                                  </span>
+                                  <span className={isRight ? 'text-green-700' : isUserWrong ? 'text-red-700' : 'text-foreground'}>
+                                    {opt}
+                                  </span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  {isRight && <Check size={16} className="text-green-600" strokeWidth={3} />}
+                                  {isUserWrong && <X size={16} className="text-red-600" strokeWidth={3} />}
+                                  {isUserWrong && userAns === oi && (
+                                    <span className="text-[10px] font-bold uppercase text-red-600">
+                                      {language === 'rw' ? 'Icyo wahisemo' : language === 'fr' ? 'Votre choix' : 'Your pick'}
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="mt-3 rounded-2xl bg-primary/5 border-l-4 border-primary p-4 text-sm leading-6 text-foreground/80">
+                          {question.explanation}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -514,27 +562,28 @@ export function Quiz({
   const handleSelect = (idx: number) => {
     if (revealed) return;
     setSelected(idx);
+    const copy = [...answers];
+    copy[current] = idx;
+    setAnswers(copy);
   };
 
   const handleSubmit = () => {
     if (selected === null) return;
     setRevealed(true);
-    if (selected === q.correct) setScore((s) => s + 1);
   };
 
   const handleNext = () => {
     if (current === questions.length - 1) {
-      setFinished(true);
-
       if (isSample) {
         localStorage.setItem('kora-sample-taken', '1');
       }
-
-      submitExamOnce();
+      setFinished(true);
+      submitExamOnce(computeScore());
       return;
     }
-    setCurrent((c) => c + 1);
-    setSelected(null);
+    const next = current + 1;
+    setCurrent(next);
+    setSelected(answers[next] ?? null);
     setRevealed(false);
   };
   return (
@@ -569,7 +618,6 @@ export function Quiz({
                             {t.quiz.timeLeftLabel}
                           </span>
 
-
                         </div>
                       </div>
                     </div>
@@ -577,7 +625,7 @@ export function Quiz({
                   </div>
 
                   <div className="rounded-full bg-primary px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground">
-                    {qText.category}
+                    {q.category}
                   </div>
                 </div>
               </div>
@@ -589,20 +637,20 @@ export function Quiz({
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                       {t.quiz.question} {current + 1} / {questions.length}
                     </p>
-                    <h3 className="mt-3 text-xl font-semibold text-foreground leading-snug">{qText.prompt}</h3>
+                    <h3 className="mt-3 text-xl font-semibold text-foreground leading-snug">{q.prompt}</h3>
                   </div>
                   <div className="flex flex-col items-end gap-3">
                     <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-foreground">
-                      {qText.category}
+                      {q.category}
                     </div>
-                    {q.visual && (
-                      <div className="rounded-2xl border border-border bg-muted/30 p-2">{q.visual}</div>
+                    {qVisual(q) && (
+                      <div className="rounded-2xl border border-border bg-muted/30 p-2">{qVisual(q)}</div>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  {qText.options.map((opt: string, i: number) => {
+                  {q.options.map((opt: string, i: number) => {
                     const isSelected = selected === i;
                     const isCorrect = i === q.correct;
                     const showCorrect = revealed && isCorrect;
@@ -661,7 +709,7 @@ export function Quiz({
                         >
                           {selected === q.correct ? t.quiz.correct : t.quiz.notQuite}
                         </p>
-                        <p className="mt-3 text-sm leading-7 text-foreground/80">{qText.explanation}</p>
+                        <p className="mt-3 text-sm leading-7 text-foreground/80">{q.explanation}</p>
                       </div>
                     </motion.div>
                   )}

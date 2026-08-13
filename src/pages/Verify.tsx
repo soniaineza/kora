@@ -26,17 +26,13 @@ export function Verify() {
     status: string;
     packageKey: string;
     amountRwf?: number;
+    phoneNumber?: string;
     failureReason?: string | null;
     active: boolean;
   } | null>(null);
 
   const handleContinue = useCallback(async () => {
     if (!order) return;
-
-    if (order.packageKey === 'BOOK') {
-      navigate('/library');
-      return;
-    }
 
     setLoading(true);
     setError(null);
@@ -120,10 +116,10 @@ export function Verify() {
   const title = language === 'rw' ? 'Agakururu kanyu' : language === 'fr' ? 'Ma commande' : 'Order Status';
   const subtitle =
     language === 'rw'
-      ? 'Tegereza umuyobozi wacu kwemeza kwishyura kwawe. Uzamenya igihe ufashwe kuri telefone yawe.'
+      ? 'Paketi izafungurwa igihe kwishyura kwemejwe kuri Mobile Money.'
       : language === 'fr'
-        ? 'Votre forfait sera activé dès que l\'administrateur aura confirmé votre paiement.'
-        : 'Your package is activated once an administrator confirms your payment.';
+        ? 'Votre forfait sera activé dès que votre paiement Mobile Money est confirmé.'
+        : 'Your package is activated once your Mobile Money payment is confirmed.';
 
   return (
     <>
@@ -173,22 +169,16 @@ export function Verify() {
                   {language === 'rw' ? 'Paketi yanyu yemejwe!' : 'Payment Confirmed!'}
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                  {order?.packageKey === 'BOOK'
-                    ? (language === 'rw'
-                      ? 'Igitabo cyawe kirashobora gusomwa noneho.'
-                      : 'Your book is now accessible.')
-                    : (language === 'rw'
-                      ? 'Noneho ushobora gutangira gukora ibizamini byawe.'
-                      : 'Your package is now active. You can start your practice exams now.')}
+                  {language === 'rw'
+                    ? 'Noneho ushobora gutangira gukora ibizamini byawe.'
+                    : 'Your package is now active. You can start your practice exams now.'}
                 </p>
                 <button
                   onClick={handleContinue}
                   disabled={loading}
                   className="w-full bg-primary text-primary-foreground rounded-full py-4 text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90"
                 >
-                  {loading ? '...' : (order?.packageKey === 'BOOK'
-                    ? (language === 'rw' ? 'Soma Igitabo' : 'Read the Book')
-                    : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam'))}
+                  {loading ? '...' : (language === 'rw' ? 'Tangira Ikizamini' : 'Start Exam')}
                 </button>
               </div>
             ) : (
@@ -197,12 +187,12 @@ export function Verify() {
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                 </div>
                 <h2 className="text-xl font-heading font-bold text-foreground mb-4">
-                  {language === 'rw' ? 'Turacyategereje kwemeza...' : 'Waiting for confirmation...'}
+                  {language === 'rw' ? 'Kwemeza kuri telefone yawe...' : 'Confirm on your phone...'}
                 </h2>
-                <p className="text-sm text-muted-foreground mb-8">
+                <p className="text-sm text-muted-foreground mb-6">
                   {language === 'rw'
-                    ? 'Wishyuye? Umuyobozi azakwemeza. Iyi paji izakomeza kugenzura agakururu kawe.'
-                    : 'Make sure your payment is done. This page keeps checking your order until it is activated.'}
+                    ? 'Niba utarabinyejeje, reba telefone yawe ukameze icyifuzo kuri Mobile Money (andika PIN). Iyi paji izakomeza kugenzura agakururu kawe.'
+                    : 'If you haven\'t approved it yet, check your phone for the Mobile Money prompt and enter your PIN. This page keeps checking your order until it is activated.'}
                 </p>
 
                 {order && (
@@ -222,6 +212,12 @@ export function Verify() {
                       <div className="text-muted-foreground">
                         {language === 'rw' ? 'Amafaranga:' : language === 'fr' ? 'Montant :' : 'Amount: '}{' '}
                         <span className="font-semibold text-foreground">{order.amountRwf.toLocaleString()} RWF</span>
+                      </div>
+                    ) : null}
+                    {order.phoneNumber ? (
+                      <div className="text-muted-foreground">
+                        {language === 'rw' ? 'Telefone:' : language === 'fr' ? 'Téléphone :' : 'Phone: '}{' '}
+                        <span className="font-semibold text-foreground">{order.phoneNumber}</span>
                       </div>
                     ) : null}
                   </div>

@@ -24,8 +24,7 @@ const PLAN_DAYS = {
   MASTER: 10,
   PREMIUM: 15,
   PRO: 30,
-  UNLIMITED: null,
-  BOOK: 365,
+  UNLIMITED: 45,
 };
 
 function calculateExpiry(packageKey) {
@@ -120,12 +119,15 @@ async function findTransactionByProviderReference(providerRef) {
  * then initiate a cashin with Paypack. The returned Paypack reference is stored
  * on the transaction so the webhook can match it back.
  */
-async function createPaypackOrder({ userId, packageKey, phoneNumber }) {
+async function createPaypackOrder({ userId, packageKey, phoneNumber, accountPhone }) {
   const plan = packageService.getPlan(packageKey);
   if (!plan) throw ApiError.badRequest('Invalid package');
 
   const txRef = makeTxRef();
   const normalizedPhone = toLocalKey(phoneNumber);
+  // The package belongs to the account's phone (what exam gating checks), even
+  // when the customer pays from a different MoMo number.
+  const accountPhoneKey = toLocalKey(accountPhone) || normalizedPhone;
 
   const { data: transaction, error: txError } = await getSupabaseAdmin()
     .from('transactions')
@@ -151,7 +153,7 @@ async function createPaypackOrder({ userId, packageKey, phoneNumber }) {
     .from('user_packages')
     .insert({
       id: txRef,
-      phone: normalizedPhone,
+      phone: accountPhoneKey,
       package_key: plan.key,
       amount_rwf: plan.amountRwf,
       status: 'pending',

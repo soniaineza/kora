@@ -93,6 +93,16 @@ export function UserDashboard() {
   const activePackages = packages.filter(p => p.status === 'active');
   const expiredPackages = packages.filter(p => p.status !== 'active');
 
+  const PLAN_TOTALS: Record<string, number> = {
+    STARTER: 10,
+    BASIC: 15,
+    STANDARD: 20,
+    MASTER: 20,
+    PREMIUM: 25,
+    PRO: 50,
+    UNLIMITED: 100,
+  };
+
   return (
     <>
       <PageHeader 
@@ -115,7 +125,20 @@ export function UserDashboard() {
                       <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">{t.active}</span>
                     </div>
                     <div className="space-y-2 text-sm">
-                      <p className="text-muted-foreground">{t.attemptsLeft}: <span className="text-foreground font-medium">{pkg.unlimited ? t.unlimited : pkg.remaining_attempts}</span></p>
+                      <p className="text-muted-foreground">
+                        {t.attemptsLeft}:{' '}
+                        <span className="text-foreground font-medium">
+                          {pkg.unlimited ? t.unlimited : pkg.remaining_attempts}
+                        </span>
+                        {!pkg.unlimited && PLAN_TOTALS[pkg.package_key] != null && (
+                          <span className="text-muted-foreground">
+                            {' '}
+                            ({Math.max(0, PLAN_TOTALS[pkg.package_key] - Number(pkg.remaining_attempts ?? 0))}{' '}
+                            {language === 'rw' ? 'kubonetse' : language === 'fr' ? 'passés' : 'used'} /{' '}
+                            {PLAN_TOTALS[pkg.package_key]})
+                          </span>
+                        )}
+                      </p>
                       {pkg.expires_at && (
                         <p className="text-muted-foreground">{t.expires}: <span className="text-foreground font-medium">{new Date(pkg.expires_at).toLocaleDateString()}</span></p>
                       )}

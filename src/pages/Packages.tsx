@@ -106,21 +106,12 @@ const packages: Pkg[] = [
   },
   {
     key: 'UNLIMITED',
-    questions: '∞',
+    questions: '100',
     price: '7,000',
-    days: 'Unlimited',
+    days: '45',
     highlight: false,
     labelEn: '',
     labelRw: ''
-  },
-  {
-    key: 'BOOK',
-    questions: 'Book',
-    price: '1,000',
-    days: '365 days',
-    highlight: false,
-    labelEn: 'IGAZETI-1',
-    labelRw: 'IGAZETI-1'
   }
 ];
 

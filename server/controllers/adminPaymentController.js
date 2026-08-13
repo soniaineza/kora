@@ -166,6 +166,22 @@ const getMostPopular = asyncHandler(async (req, res) => {
 });
 
 /**
+ * GET /api/admin/packages/active-count
+ * Number of currently active purchased packages (not expired, not pending).
+ */
+const getActivePackagesCount = asyncHandler(async (req, res) => {
+  const nowIso = new Date().toISOString();
+  const { count, error } = await getSupabaseAdmin()
+    .from('user_packages')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .or(`expires_at.gt.${nowIso},expires_at.is.null`);
+
+  if (error) throw error;
+  res.json({ ok: true, activePackages: count ?? 0 });
+});
+
+/**
  * GET /api/admin/payments/stats
  * Get payment statistics.
  */
@@ -442,4 +458,5 @@ module.exports = {
   getPackageSales,
   getExamSessionCounts,
   getMostPopular,
+  getActivePackagesCount,
 };

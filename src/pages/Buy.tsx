@@ -24,8 +24,7 @@ const PLAN_MAP: Record<string, PlanDef> = {
   MASTER: { key: 'MASTER', titleEn: '2,000 RWF / 20 exams / 10 days', titleRw: '2000Frw / ibizamini 20 / iminsi 10', exams: 20, days: 10, priceRwf: 2000 },
   PREMIUM: { key: 'PREMIUM', titleEn: '3,000 RWF / 25 exams / 15 days', titleRw: '3000Frw / ibizamini 25 / iminsi 15', exams: 25, days: 15, priceRwf: 3000 },
   PRO: { key: 'PRO', titleEn: '5,000 RWF / 50 exams / 30 days', titleRw: '5000Frw / ibizamini 50 / iminsi 30', exams: 50, days: 30, priceRwf: 5000 },
-  UNLIMITED: { key: 'UNLIMITED', titleEn: '7,000 RWF / unlimited / unlimited', titleRw: '7000Frw / bidashira / bidashira', exams: 'unlimited', days: 'unlimited', priceRwf: 7000 },
-  BOOK: { key: 'BOOK', titleEn: '1,000 RWF / Book Access / 1 year', titleRw: '1000Frw / Ibitabo / umwaka 1', exams: 'unlimited', days: 365, priceRwf: 1000 },
+  UNLIMITED: { key: 'UNLIMITED', titleEn: '7,000 RWF / 100 exams / 45 days', titleRw: '7000Frw / ibizamini 100 / iminsi 45', exams: 100, days: 45, priceRwf: 7000 },
 };
 
 export function Buy() {
@@ -38,7 +37,7 @@ export function Buy() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ orderId: string } | null>(null);
+  const [done, setDone] = useState<{ orderId: string; amount: number; phone: string } | null>(null);
   const [phone, setPhone] = useState('');
 
   const title = language === 'rw' ? 'Kwishyura' : language === 'fr' ? 'Paiement' : 'Payment';
@@ -126,7 +125,7 @@ export function Buy() {
         setLoading(false);
         return;
       }
-      setDone({ orderId: data.orderId || data.txRef });
+      setDone({ orderId: data.orderId || data.txRef, amount: plan.priceRwf, phone: phone.trim() });
     } catch (e: any) {
       setError(e?.message || 'Failed to start payment');
       setLoading(false);
@@ -134,6 +133,29 @@ export function Buy() {
   }
 
   if (done) {
+    const stepLabels = [
+      language === 'rw' ? 'Reba telefone yawe' : language === 'fr' ? 'Vérifiez votre téléphone' : 'Check your phone',
+      language === 'rw' ? 'Andika PIN yawe' : language === 'fr' ? 'Entrez votre PIN' : 'Enter your PIN',
+      language === 'rw' ? 'Tangira kwiga' : language === 'fr' ? 'Commencez à apprendre' : 'Start learning',
+    ];
+    const stepDetails = [
+      language === 'rw'
+        ? `Uzabona icyifuzo cyo kwishyura ${done.amount.toLocaleString()} RWF kuri ${done.phone}.`
+        : language === 'fr'
+          ? `Une demande de paiement de ${done.amount.toLocaleString()} RWF est envoyée au ${done.phone}.`
+          : `A ${done.amount.toLocaleString()} RWF payment request is on its way to ${done.phone}.`,
+      language === 'rw'
+        ? 'Kwemeza mu kwinjiza PIN yawe ya Mobile Money (MTN MoMo, Airtel Money cyangwa Tigo Cash).'
+        : language === 'fr'
+          ? 'Approuvez-la en saisissant votre code PIN Mobile Money (MTN MoMo, Airtel Money ou Tigo Cash).'
+          : 'Approve it by entering your Mobile Money PIN (MTN MoMo, Airtel Money or Tigo Cash).',
+      language === 'rw'
+        ? 'Paketi izafungurwa ako kanya nyuma yo kwemeza.'
+        : language === 'fr'
+          ? 'Votre forfait est activé automatiquement dès que le paiement est confirmé.'
+          : 'Your package activates automatically once the payment is confirmed.',
+    ];
+
     return (
       <>
         <PageHeader title={title} subtitle={subtitle} />
@@ -143,19 +165,55 @@ export function Buy() {
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-3xl">
                 {'\u2713'}
               </div>
-              <h2 className="text-xl font-heading font-bold text-foreground mb-2">
-                {language === 'rw' ? 'Agakururu kakuze!' : language === 'fr' ? 'Commande reçue !' : 'Order received!'}
+              <h2 className="text-xl font-heading font-bold text-foreground mb-1">
+                {language === 'rw'
+                  ? 'Kwemeza kuri telefone yawe'
+                  : language === 'fr'
+                    ? 'Confirmez sur votre téléphone'
+                    : 'Confirm on your phone'}
               </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                {language === 'rw' ? 'Umubare wa agakururu:' : language === 'fr' ? 'Référence de commande :' : 'Order reference:'}{' '}
-                <span className="font-mono text-foreground">{done.orderId}</span>
+              <p className="text-sm text-muted-foreground mb-6">
+                {language === 'rw'
+                  ? 'Twarohereje icyifuzo cyo kwishyura. Cyemeze kuri Mobile Money ngo paketi ifungurwe.'
+                  : language === 'fr'
+                    ? 'Nous avons envoyé la demande de paiement. Approuvez-la sur Mobile Money pour activer votre forfait.'
+                    : 'We sent the payment request. Approve it on Mobile Money to activate your package.'}
               </p>
-              <p className="text-sm text-muted-foreground mb-6">{howToPayMoMo}</p>
+
+              <div className="mb-6 grid gap-3 text-left">
+                {stepLabels.map((label, i) => (
+                  <div key={label} className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{label}</p>
+                      <p className="text-sm text-muted-foreground">{stepDetails[i]}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-muted-foreground mb-6">
+                {language === 'rw' ? 'Agakururu:' : language === 'fr' ? 'Commande :' : 'Order:'}{' '}
+                <span className="font-mono">{done.orderId}</span>
+              </p>
+
               <button
                 onClick={() => navigate(`/verify?order=${encodeURIComponent(done.orderId)}`)}
                 className="w-full bg-primary text-primary-foreground rounded-full py-3 text-sm font-semibold"
               >
                 {viewStatus}
+              </button>
+              <button
+                onClick={() => setDone(null)}
+                className="mt-3 text-xs text-muted-foreground hover:underline"
+              >
+                {language === 'rw'
+                  ? 'Ntabwo nabonye icyifuzo? Ongera ugerageze'
+                  : language === 'fr'
+                    ? "Pas reçu la demande ? Réessayez"
+                    : "Didn't get the prompt? Try again"}
               </button>
             </div>
           </div>

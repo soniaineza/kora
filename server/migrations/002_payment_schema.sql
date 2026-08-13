@@ -17,7 +17,7 @@ create table if not exists public.transactions (
   currency text not null default 'RWF',
   phone_number text not null,
   email text,
-  status text not null default 'pending',
+  status text not null default 'pending', 
   verified boolean not null default false,
   webhook_received boolean not null default false,
   failure_reason text,

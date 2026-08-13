@@ -167,25 +167,16 @@ export function Library() {
                   </svg>
                    {BOOK_PARTS.length} {language === 'rw' ? 'ibice' : language === 'fr' ? 'sections' : 'parts'}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  1,000 RWF
-                </span>
               </div>
 
               {isLoggedIn ? (
-                <Link
-                  to="/buy?package=BOOK&network=mtn"
-                  className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5"
-                >
+                <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
                   {language === 'rw'
-                    ? 'Gura igitabo — 1,000 RWF'
+                    ? 'IGAZETI-1 iboneka ku buntu. Tangira gusoma. Iga neza!'
                     : language === 'fr'
-                      ? 'Acheter le livre — 1,000 RWF'
-                      : 'Buy the book — 1,000 RWF'}
-                </Link>
+                      ? 'IGAZETI-1 est gratuit. Commencez à lire maintenant.'
+                      : 'IGAZETI-1 is free to read. Start studying now.'}
+                </p>
               ) : (
                 <Link
                   to="/register"
@@ -198,14 +189,6 @@ export function Library() {
                       : 'Login or create an account'}
                 </Link>
               )}
-
-              <p className="mt-4 text-xs text-muted-foreground">
-                {language === 'rw'
-                  ? 'Iyo ugize igitabo, ukibona mu Isomero imyaka itarenze umwaka.'
-                  : language === 'fr'
-                    ? 'Une fois acheté, le livre est accessible dans la bibliothèque pendant un an.'
-                    : 'Once purchased, the book stays in your library for one year.'}
-              </p>
             </div>
           </div>
         </section>

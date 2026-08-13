@@ -50,16 +50,18 @@ const initiatePayment = asyncHandler(async (req, res) => {
 const startPaypackPayment = asyncHandler(async (req, res) => {
   const { packageKey, phone } = req.body;
   const userId = req.auth?.userId;
+  const accountPhone = req.auth?.phone;
 
   if (!userId) throw ApiError.unauthorized('Missing user in token');
 
-  const payPhone = phone || req.auth?.phone;
+  const payPhone = phone || accountPhone;
   if (!payPhone) throw ApiError.badRequest('phone is required');
 
   const { txRef, providerRef } = await paymentService.createPaypackOrder({
     userId,
     packageKey,
     phoneNumber: payPhone,
+    accountPhone,
   });
 
   logger.info('Paypack payment started', { txRef, userId, packageKey, providerRef });
