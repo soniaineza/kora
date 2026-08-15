@@ -40,7 +40,7 @@ export function Contact() {
               <div>
                 <h3 className="font-bold mb-1 text-sm">{language === 'rw' ? 'Telefone / WhatsApp' : 'Phone / WhatsApp'}</h3>
                 <p className="text-sm text-muted-foreground">
-                  +250 788 123 456
+                  +250 784101351
                 </p>
               </div>
             </div>
