@@ -64,7 +64,7 @@ export function UserDashboard() {
   }, [navigate]);
 
   const t = {
-    title: language === 'rw' ? 'Dahibora Wanje' : language === 'fr' ? 'Mon Tableau de Bord' : 'My Dashboard',
+    title: language === 'rw' ? 'Dashboard yanjye' : language === 'fr' ? 'Mon Tableau de Bord' : 'My Dashboard',
     myPackages: language === 'rw' ? 'Ibikoresho Byanjye' : language === 'fr' ? 'Mes Forfaits' : 'My Packages',
     examHistory: language === 'rw' ? 'Amasaha Yanjye Y\'ibizamini' : language === 'fr' ? 'Mon Historique d\'Examens' : 'My Exam History',
     active: language === 'rw' ? 'Bikora' : language === 'fr' ? 'Actif' : 'Active',
