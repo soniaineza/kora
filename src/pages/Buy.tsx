@@ -62,7 +62,7 @@ export function Buy() {
     language === 'rw' ? 'Bikorwa...' : language === 'fr' ? 'Traitement...' : 'Processing...';
   const howToPayMoMo =
     language === 'rw'
-      ? 'Andika numero ya telefone, ugukubite mwifuza kuri Mobile Money (MTN MoMo, Airtel Money cyangwa Tigo Cash). Paketi izafungurwa ako kanya nyuma yo kwemeza.'
+      ? 'Andika numero ya telefone, mukoresha mwishyura  (MTN MoMo, Airtel Money cyangwa Tigo Cash). Paketi irafunguka ako kanya nyuma yo kwemeza kwishyura.'
       : language === 'fr'
         ? 'Saisissez votre numéro, puis approuvez la demande sur votre téléphone (MTN MoMo, Airtel Money ou Tigo Cash). Le forfait est activé automatiquement après confirmation.'
         : 'Enter your phone number, then approve the request on your phone (MTN MoMo, Airtel Money or Tigo Cash). Your package activates automatically once confirmed.';
