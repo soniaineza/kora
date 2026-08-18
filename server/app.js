@@ -398,6 +398,7 @@ app.get(
     }
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
     res.sendFile(pdfPath);
   })
 );

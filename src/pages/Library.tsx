@@ -5,7 +5,7 @@ import { useLanguage } from '../i18n';
 import { getApiBase } from '../lib/api';
 import { Document, Page, pdfjs } from 'react-pdf';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 const BOOK_PARTS = [
   { id: 'p01', title: { en: 'Introduction & Overview', rw: 'Incamake n\'Iby\'ibanze', fr: 'Introduction et aperçu' }, startPage: 1, endPage: 7 },
@@ -87,7 +87,7 @@ export function Library() {
   }, [apiBase]);
 
   const token = localStorage.getItem('kora-jwt');
-  const pdfUrl = hasAccess && token ? `${apiBase}/api/internal/book/pdf` : null;
+  const pdfUrl = hasAccess ? '/books/IGAZETI-1.pdf' : null;
   const pdfOptions = useMemo(
     () => (token ? { httpHeaders: { Authorization: `Bearer ${token}` } } : undefined),
     [token]
