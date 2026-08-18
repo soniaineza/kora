@@ -11,6 +11,7 @@ const { config } = require('../config/env');
 const { getSupabaseAdmin } = require('../database/supabase');
 
 const PLAN_MAP = {
+  FREE: { days: 7, exams: 1, amountRwf: 0, unlimited: false },
   STARTER: { days: 3, exams: 10, amountRwf: 500, unlimited: false },
   BASIC: { days: 5, exams: 15, amountRwf: 1000, unlimited: false },
   STANDARD: { days: 7, exams: 20, amountRwf: 1500, unlimited: false },

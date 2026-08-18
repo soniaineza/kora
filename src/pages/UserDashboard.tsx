@@ -94,6 +94,7 @@ export function UserDashboard() {
   const expiredPackages = packages.filter(p => p.status !== 'active');
 
   const PLAN_TOTALS: Record<string, number> = {
+    FREE: 1,
     STARTER: 10,
     BASIC: 15,
     STANDARD: 20,

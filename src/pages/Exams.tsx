@@ -19,6 +19,7 @@ export function Exams() {
   const apiBase = getApiBase();
 
   const planMap: Record<string, { price: string; exams: number }> = {
+    FREE: { price: 'Free', exams: 1 },
     STARTER: { price: '500 RWF', exams: 10 },
     BASIC: { price: '1,000 RWF', exams: 15 },
     STANDARD: { price: '1,500 RWF', exams: 20 },

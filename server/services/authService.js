@@ -71,6 +71,31 @@ async function register({ phone, password, fullName, email }) {
     user = await userModel.create({ phone: normalized, fullName, passwordHash, email });
   }
 
+  // Auto-grant a free exam package for new users
+  try {
+    const { getSupabaseAdmin } = require('../database/supabase');
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const freePkgId = `free_${normalized}_${now.getTime()}`;
+    await getSupabaseAdmin()
+      .from('user_packages')
+      .upsert({
+        id: freePkgId,
+        phone: normalized,
+        package_key: 'FREE',
+        status: 'active',
+        activated_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        total_attempts: 1,
+        remaining_attempts: 1,
+        unlimited: false,
+        amount_rwf: 0,
+        payment_method: 'free',
+      }, { onConflict: 'id', ignoreDuplicates: true });
+  } catch (_err) {
+    // Non-critical: don't block registration if free package grant fails
+  }
+
   return { token: issueToken(user), user };
 }
 
@@ -94,6 +119,42 @@ async function login({ identifier, password }) {
   const ok = await verifyPassword(String(password), user.password_hash);
   if (!ok) {
     throw ApiError.unauthorized('Invalid phone/email or password');
+  }
+
+  // Ensure every user has a free exam package
+  try {
+    const { getSupabaseAdmin } = require('../database/supabase');
+    const { data: existingFree } = await getSupabaseAdmin()
+      .from('user_packages')
+      .select('id')
+      .eq('phone', idText.includes('@') ? user.phone : toLocalKey(idText))
+      .eq('package_key', 'FREE')
+      .limit(1)
+      .maybeSingle();
+
+    if (!existingFree) {
+      const phone = user.phone;
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const freePkgId = `free_${phone}_${now.getTime()}`;
+      await getSupabaseAdmin()
+        .from('user_packages')
+        .upsert({
+          id: freePkgId,
+          phone,
+          package_key: 'FREE',
+          status: 'active',
+          activated_at: now.toISOString(),
+          expires_at: expiresAt.toISOString(),
+          total_attempts: 1,
+          remaining_attempts: 1,
+          unlimited: false,
+          amount_rwf: 0,
+          payment_method: 'free',
+        }, { onConflict: 'id', ignoreDuplicates: true });
+    }
+  } catch (_err) {
+    // Non-critical: don't block login if free package grant fails
   }
 
   return { token: issueToken(user), user };
