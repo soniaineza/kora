@@ -26,10 +26,10 @@ export function Contact() {
               <div>
                 <h3 className="font-bold mb-1 text-sm">{language === 'rw' ? 'Imeyili' : 'Email'}</h3>
                 <a
-                  href="mailto:support@kora.rw"
+                  href="mailto:support@koraapp.net"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   
-                  support@kora.rw
+                  support@koraapp.net
                 </a>
               </div>
             </div>

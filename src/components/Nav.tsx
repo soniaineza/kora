@@ -50,8 +50,8 @@ export function Nav() {
           <span className="font-heading font-bold text-xl tracking-tight text-primary">
             KORA
           </span>
-          <span className="font-heading font-bold text-xl tracking-tight text-foreground">
-            .RW
+          <span className="font-heading font-bold text-lg tracking-tight text-foreground">
+            APP.NET
           </span>
         </Link>
 
@@ -85,7 +85,7 @@ export function Nav() {
           <ThemeToggle />
           <LanguageToggle />
           <a
-            href={hashLink('quiz')}
+            href="/exams?plan=FREE&start=0"
             className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md">
             {t.nav.start}
           </a>
@@ -192,7 +192,7 @@ export function Nav() {
         )}
 
         <a
-          href={hashLink('quiz')}
+          href="/exams?plan=FREE&start=0"
           className="mt-2 rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground transition-colors duration-300 hover:bg-primary/90">
           {t.nav.start}
         </a>

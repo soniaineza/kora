@@ -231,18 +231,17 @@ export function Hero() {
               className="rounded-full bg-primary px-6 py-3.5 text-center text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl">
               {t.hero.codes}
             </Link>
-            {/* Free trial CTA (single button). If already taken, prompt to register. */}
+            {/* Free trial CTA (single button). */}
             <a
-              href={sampleTaken ? '/register' : hashLink('quiz')}
+              href={sampleTaken ? '/library' : hashLink('quiz')}
               onClick={(e) => {
                 if (sampleTaken) {
-                  // allow full navigation to /register when sample already taken
+                  // allow full navigation to /library when sample already taken
                   return;
                 }
               }}
               className={`rounded-full border border-border px-6 py-3.5 text-center text-sm font-semibold backdrop-blur transition-all duration-300 hover:-translate-y-0.5 ${sampleTaken ? 'bg-background/85 hover:border-foreground/30 hover:bg-background' : 'bg-background/85 hover:border-foreground/30 hover:bg-background'}`}>
-              {sampleTaken ? t.hero.createAccountLink : t.hero.sample}
-
+              {sampleTaken ? t.quiz.startLearning : t.hero.sample}
             </a>
 
           </div>

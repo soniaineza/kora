@@ -74,7 +74,7 @@ export function Register() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-baseline mb-6">
             <span className="font-heading font-bold text-2xl text-primary">KORA</span>
-            <span className="font-heading font-bold text-2xl text-foreground">.RW</span>
+            <span className="font-heading font-bold text-lg text-foreground">APP.NET</span>
           </Link>
           <h1 className="text-2xl font-heading font-extrabold text-foreground mb-2">
             {label('Iyandikishe', 'Créer un compte', 'Create account')}

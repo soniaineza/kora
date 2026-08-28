@@ -75,10 +75,20 @@ export function Library() {
         const res = await fetch(`${apiBase}/api/internal/book/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (mounted) setHasAccess(!!data.hasAccess);
+        // Handle non-JSON error responses (e.g. HTML 404 pages)
+        const contentType = res.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+        const data = isJson ? await res.json() : await res.text();
+        if (!res.ok) {
+          // API returned an error — fall back to allowing access for logged-in users
+          if (mounted) setHasAccess(true);
+          return;
+        }
+        if (mounted) setHasAccess(isJson ? !!data.hasAccess : true);
       } catch {
-        if (mounted) setHasAccess(false);
+        // Network error or parse failure — fall back to allowing access for logged-in users
+        const token = localStorage.getItem('kora-jwt');
+        if (mounted) setHasAccess(!!token);
       } finally {
         if (mounted) setCheckingAccess(false);
       }

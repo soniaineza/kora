@@ -11,7 +11,7 @@ function otp(code) {
 
 function welcome(fullName) {
   const name = fullName ? `${fullName}, ` : '';
-  return `${name}Welcome to Kora! Your driving exam preparation account is ready. Visit kora.rw to start practising.`;
+  return `${name}Welcome to Kora! Your driving exam preparation account is ready. Visit koraapp.net to start practising.`;
 }
 
 function paymentConfirmation({ plan, amount, reference }) {

@@ -104,6 +104,32 @@ export function UserDashboard() {
     UNLIMITED: 100,
   };
 
+  // Compute overall stats from sessions
+  const totalExamsTaken = sessions.length;
+
+  // Compute total remaining attempts across all active packages
+  const totalRemaining = activePackages.reduce((sum, pkg) => {
+    if (pkg.unlimited) return sum + 999;
+    return sum + (pkg.remaining_attempts ?? 0);
+  }, 0);
+
+  // Compute nearest expiry date
+  const nearestExpiry = activePackages
+    .filter(p => p.expires_at)
+    .map(p => new Date(p.expires_at!))
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  const formatTimeRemaining = (expiry: Date) => {
+    const now = new Date();
+    const diffMs = expiry.getTime() - now.getTime();
+    if (diffMs <= 0) return language === 'rw' ? 'Byarangiye' : language === 'fr' ? 'Expiré' : 'Expired';
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (days > 0) return `${days} ${language === 'rw' ? 'iminshi' : language === 'fr' ? 'jours' : 'days'} ${hours}h`;
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  };
+
   return (
     <>
       <PageHeader 
@@ -114,48 +140,92 @@ export function UserDashboard() {
       <section className="bg-background py-10">
         <div className="max-w-6xl mx-auto px-6 space-y-8">
 
+          {/* Summary Stats */}
+          {activePackages.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="bg-background border border-border rounded-2xl p-5 shadow-sm text-center">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{language === 'rw' ? 'Paketi' : language === 'fr' ? 'Forfait' : 'Package'}</p>
+                <p className="text-xl font-heading font-extrabold text-foreground">{activePackages[0].package_key}</p>
+              </div>
+              <div className="bg-background border border-border rounded-2xl p-5 shadow-sm text-center">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{language === 'rw' ? 'Ibizamini byakozwe' : language === 'fr' ? 'Examens passés' : 'Exams Taken'}</p>
+                <p className="text-xl font-heading font-extrabold text-foreground">{totalExamsTaken}</p>
+              </div>
+              <div className="bg-background border border-border rounded-2xl p-5 shadow-sm text-center">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{language === 'rw' ? 'Ibig余' : language === 'fr' ? 'Examens restants' : 'Exams Remaining'}</p>
+                <p className="text-xl font-heading font-extrabold text-foreground">{totalRemaining >= 999 ? '∞' : totalRemaining}</p>
+              </div>
+              <div className="bg-background border border-border rounded-2xl p-5 shadow-sm text-center">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{language === 'rw' ? 'Igihe gisigaye' : language === 'fr' ? 'Temps restant' : 'Time Left'}</p>
+                <p className="text-xl font-heading font-extrabold text-foreground">
+                  {nearestExpiry ? formatTimeRemaining(nearestExpiry) : (language === 'rw' ? 'Bidahera' : language === 'fr' ? 'Illimité' : 'No expiry')}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Active Packages */}
           <div>
             <h2 className="text-2xl font-heading font-bold text-foreground mb-4">{t.myPackages}</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {activePackages.length > 0 ? (
-                activePackages.map((pkg) => (
-                  <div key={pkg.id} className="bg-background border border-border rounded-2xl p-6 shadow-sm">
-                    <div className="flex items-start justify-between mb-4">
-                      <span className="text-sm font-semibold text-primary px-3 py-1 rounded-full bg-primary/10">{pkg.package_key}</span>
-                      <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">{t.active}</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-muted-foreground">
-                        {t.attemptsLeft}:{' '}
-                        <span className="text-foreground font-medium">
-                          {pkg.unlimited ? t.unlimited : pkg.remaining_attempts}
-                        </span>
-                        {!pkg.unlimited && PLAN_TOTALS[pkg.package_key] != null && (
-                          <span className="text-muted-foreground">
-                            {' '}
-                            ({Math.max(0, PLAN_TOTALS[pkg.package_key] - Number(pkg.remaining_attempts ?? 0))}{' '}
-                            {language === 'rw' ? 'kubonetse' : language === 'fr' ? 'passés' : 'used'} /{' '}
-                            {PLAN_TOTALS[pkg.package_key]})
+                activePackages.map((pkg) => {
+                  const totalForPlan = PLAN_TOTALS[pkg.package_key];
+                  const used = totalForPlan != null && !pkg.unlimited ? Math.max(0, totalForPlan - Number(pkg.remaining_attempts ?? 0)) : null;
+                  return (
+                    <div key={pkg.id} className="bg-background border border-border rounded-2xl p-6 shadow-sm">
+                      <div className="flex items-start justify-between mb-4">
+                        <span className="text-sm font-semibold text-primary px-3 py-1 rounded-full bg-primary/10">{pkg.package_key}</span>
+                        <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">{t.active}</span>
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">{language === 'rw' ? 'Ibizamini bisigaye' : language === 'fr' ? 'Examens restants' : 'Exams Left'}</span>
+                          <span className="text-foreground font-semibold">
+                            {pkg.unlimited ? t.unlimited : pkg.remaining_attempts ?? 0}
+                            {used != null && totalForPlan != null && (
+                              <span className="text-muted-foreground font-normal"> / {totalForPlan}</span>
+                            )}
                           </span>
+                        </div>
+                        {used != null && totalForPlan != null && (
+                          <div>
+                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-300"
+                                style={{ width: `${Math.round((used / totalForPlan) * 100)}%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {used} {language === 'rw' ? 'yakoreshwe' : language === 'fr' ? 'passés' : 'used'} / {totalForPlan} {language === 'rw' ? 'byose' : language === 'fr' ? 'total' : 'total'}
+                            </p>
+                          </div>
                         )}
-                      </p>
-                      {pkg.expires_at && (
-                        <p className="text-muted-foreground">{t.expires}: <span className="text-foreground font-medium">{new Date(pkg.expires_at).toLocaleDateString()}</span></p>
-                      )}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-border flex gap-2">
-                      <Link to={`/buy?package=${pkg.package_key}`} className="flex-1 text-center text-sm font-semibold text-primary hover:underline">
-                        {t.buyMore}
-                      </Link>
-                      {!pkg.unlimited && pkg.remaining_attempts && pkg.remaining_attempts > 0 && (
-                        <Link to={`/exams?plan=${pkg.package_key}&start=0`} className="flex-1 bg-primary text-primary-foreground text-center py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
-                          {t.startExam}
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">{t.expires}</span>
+                          <span className="text-foreground font-medium">
+                            {pkg.expires_at ? (
+                              <>
+                                {new Date(pkg.expires_at).toLocaleDateString()}
+                                <span className="text-xs text-muted-foreground ml-1">({formatTimeRemaining(new Date(pkg.expires_at))})</span>
+                              </>
+                            ) : (language === 'rw' ? 'Bidahera' : language === 'fr' ? 'Pas d\'expiration' : 'No expiry')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-border flex gap-2">
+                        <Link to={`/buy?package=${pkg.package_key}`} className="flex-1 text-center text-sm font-semibold text-primary hover:underline">
+                          {t.buyMore}
                         </Link>
-                      )}
+                        {(!pkg.unlimited ? (pkg.remaining_attempts ?? 0) > 0 : true) && (
+                          <Link to={`/exams?plan=${pkg.package_key}&start=0`} className="flex-1 bg-primary text-primary-foreground text-center py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+                            {t.startExam}
+                          </Link>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="col-span-full text-center py-12 bg-background border border-border rounded-2xl">
                   <p className="text-muted-foreground mb-4">{t.noPackages}</p>

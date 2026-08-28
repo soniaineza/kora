@@ -361,7 +361,7 @@ const translations = {
     terms: {
       title: 'Terms of Service',
       lastUpdated: 'Last updated: January 2026',
-      paragraph1: 'By accessing or using Kora.rw, you agree to be bound by these Terms. If you do not agree, please do not use our platform.',
+      paragraph1: 'By accessing or using Koraapp.net, you agree to be bound by these Terms. If you do not agree, please do not use our platform.',
       paragraph2: 'All exam codes purchased via MTN MoMo or Airtel Money are valid for 30 days from first use. Codes are single-user and non-transferable.',
       paragraph3: 'Unused codes may be refunded within 7 days of purchase. Once a code has been activated, refunds are not available except where required by law.'
     },
@@ -370,7 +370,7 @@ const translations = {
       lastUpdated: 'Last updated: January 2026',
       paragraph1: 'To deliver Kora, we collect your phone number (for SMS code delivery), your MoMo transaction reference (for payment confirmation), and basic practice data (questions answered, time spent, score).',
       paragraph2: 'We use your phone number only to deliver exam codes and important account notifications. Practice data is used to power your progress dashboard and to improve question quality.',
-      paragraph3: 'You may request access to, correction of, or deletion of your data at any time by emailing privacy@kora.rw.'
+      paragraph3: 'You may request access to, correction of, or deletion of your data at any time by emailing privacy@koraapp.net.'
     },
 
     footer: {
@@ -738,7 +738,7 @@ const translations = {
     terms: {
       title: 'Amategeko ya Serivisi',
       lastUpdated: 'Yavuguruwe: Mutarama 2026',
-      paragraph1: 'Ukoresheje cyangwa wifashishije Kora.rw wemera amategeko. Niba utabyemera, ntukoreshe uru rubuga.',
+      paragraph1: 'Ukoresheje cyangwa wifashishije Koraapp.net wemera amategeko. Niba utabyemera, ntukoreshe uru rubuga.',
       paragraph2: 'Kode z\'ibizamini zose zigurwa hakoreshejwe MTN MoMo cyangwa Airtel Money ziba zuzuye iminsi 30 kuva uko zakoreshejwe bwa mbere. Kode ni uwaziguze gusa ntizishobora guhanwa.',
       paragraph3: 'Kode zidakoreshwa zishobora gusubizwa amafaranga mu minsi 7. Iyo kode imaze gukoreshwa, ntisubizwa keretse biteganywa n\'amategeko.'
     },
@@ -747,7 +747,7 @@ const translations = {
       lastUpdated: 'Yavuguruwe: Mutarama 2026',
       paragraph1: 'Dukoresha nimero yawe ya telefone kugirango twohereze kode za SMS, inyandiko z\'amafaranga ya MoMo, n\'ibipimo by\'imyitozo (ibibazo wisubije, igihe, amanota).',
       paragraph2: 'Nimero yawe ikoreshwa gusa mu kohereza kode n\'amatangazo y\'ingenzi. Amakuru y\'imyitozo akoreshwa mu byo gukurikirana aho ugeze.',
-      paragraph3: 'Ushobora gusaba kubona, gukosora cyangwa gusiba amakuru yawe iyo ari yo yose ukoresheje email privacy@kora.rw.'
+      paragraph3: 'Ushobora gusaba kubona, gukosora cyangwa gusiba amakuru yawe iyo ari yo yose ukoresheje email privacy@koraapp.net.'
     },
 
     footer: {
@@ -1116,7 +1116,7 @@ const translations = {
     terms: {
       title: 'Conditions d\'utilisation',
       lastUpdated: 'Dernière mise à jour : Janvier 2026',
-      paragraph1: 'En accédant à Kora.rw, vous acceptez les présentes conditions. Si vous n\'êtes pas d\'accord, veuillez ne pas utiliser la plateforme.',
+      paragraph1: 'En accédant à Koraapp.net, vous acceptez les présentes conditions. Si vous n\'êtes pas d\'accord, veuillez ne pas utiliser la plateforme.',
       paragraph2: 'Tous les codes d\'examen achetés via MTN MoMo ou Airtel Money sont valables 30 jours à compter de la première utilisation. Les codes sont non transférables.',
       paragraph3: 'Les codes non utilisés peuvent être remboursés dans les 7 jours suivant l\'achat. Une fois activé, un code n\'est plus remboursable sauf disposition légale.'
     },
@@ -1125,7 +1125,7 @@ const translations = {
       lastUpdated: 'Dernière mise à jour : Janvier 2026',
       paragraph1: 'Pour fournir Kora, nous collectons votre numéro de téléphone (pour la livraison des codes par SMS), la référence de transaction MoMo (pour confirmer le paiement) et des données de pratique de base (questions répondues, temps passé, score).',
       paragraph2: 'Nous utilisons votre numéro uniquement pour livrer les codes et les notifications importantes. Les données de pratique servent au tableau de bord de progression.',
-      paragraph3: 'Vous pouvez demander l\'accès, la correction ou la suppression de vos données en écrivant à privacy@kora.rw.'
+      paragraph3: 'Vous pouvez demander l\'accès, la correction ou la suppression de vos données en écrivant à privacy@koraapp.net.'
     },
     footer: {
       description:

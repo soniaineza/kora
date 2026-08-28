@@ -18,8 +18,8 @@ export function Footer() {
               <span className="font-heading font-bold text-xl text-primary">
                 KORA
               </span>
-              <span className="font-heading font-bold text-xl text-background">
-                .RW
+              <span className="font-heading font-bold text-lg text-background">
+                APP.NET
               </span>
             </Link>
             <p className="text-background/60 text-xs leading-relaxed max-w-xs">
