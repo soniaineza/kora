@@ -1,9 +1,4 @@
 'use strict';
-
-/**
- * Data access for the `notifications` table.
- */
-
 const { getSupabaseAdmin } = require('../database/supabase');
 
 const TABLE = 'notifications';

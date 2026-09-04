@@ -261,13 +261,24 @@ app.get(
     if (!plan) throw ApiError.badRequest('plan is required');
 
     const { getSupabaseAdmin } = require('./database/supabase');
+    const nowIso = new Date().toISOString();
+
+    // Clean up expired active sessions for this user/plan
+    await getSupabaseAdmin()
+      .from('exam_sessions')
+      .update({ status: 'expired' })
+      .eq('phone', phone)
+      .eq('plan', plan.key)
+      .eq('status', 'active')
+      .lt('expires_at', nowIso);
+
     const { data, error } = await getSupabaseAdmin()
       .from('exam_sessions')
       .select('*')
       .eq('phone', phone)
       .eq('plan', plan.key)
       .eq('status', 'active')
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', nowIso)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -284,6 +295,17 @@ app.post(
     const phone = req.auth?.phone;
     if (!plan) throw ApiError.badRequest('Unknown package');
     if (!phone) throw ApiError.unauthorized('Missing phone in token');
+
+    const { getSupabaseAdmin } = require('./database/supabase');
+
+    // Clean up any stale active sessions for this user/plan (expired or orphaned)
+    await getSupabaseAdmin()
+      .from('exam_sessions')
+      .update({ status: 'expired' })
+      .eq('phone', phone)
+      .eq('plan', plan.key)
+      .eq('status', 'active')
+      .lt('expires_at', new Date().toISOString());
 
     const activePackage = await packageService.findActivePackage(phone, plan.key);
     if (!activePackage) {

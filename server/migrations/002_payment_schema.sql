@@ -1,11 +1,3 @@
--- Payment System Schema
--- Run in Supabase SQL Editor after existing schema
---
--- Payments are recorded as manual orders. Users place an order (status
--- 'pending') and an admin activates it after being paid offline. There is no
--- external payment provider.
-
--- Transactions table - every payment attempt / manual order
 create table if not exists public.transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references public.users(id) on delete set null,

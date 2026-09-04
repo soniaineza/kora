@@ -1,9 +1,4 @@
 'use strict';
-
-/**
- * Data access for the `users` table.
- */
-
 const { getSupabaseAdmin } = require('../database/supabase');
 
 const TABLE = 'users';
@@ -39,8 +34,6 @@ async function findByEmail(email) {
 }
 
 async function create({ phone, fullName, passwordHash, email }) {
-  // Only include password/email fields when provided so the OTP flow keeps
-  // working even before the password columns are migrated.
   const payload = { phone, full_name: fullName || null };
   if (passwordHash) payload.password_hash = passwordHash;
   if (email) payload.email = email;

@@ -1,10 +1,4 @@
 'use strict';
-
-/**
- * Data access for the `otp_codes` table.
- * Only ever receives hashed OTP values (see utils/crypto.js).
- */
-
 const { getSupabaseAdmin } = require('../database/supabase');
 
 const TABLE = 'otp_codes';
